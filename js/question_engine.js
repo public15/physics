@@ -15,6 +15,23 @@ const PHYSICS_ENGINE = {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     },
 
+    // 根式化简助手
+    simplifySqrt(n) {
+        if (n < 0) return "无实根";
+        if (n === 0) return "0";
+        let out = 1;
+        let inside = n;
+        for (let i = Math.floor(Math.sqrt(n)); i >= 2; i--) {
+            if (inside % (i * i) === 0) {
+                out *= i;
+                inside /= (i * i);
+            }
+        }
+        if (inside === 1) return `${out}`;
+        if (out === 1) return `\\sqrt{${inside}}`;
+        return `${out}\\sqrt{${inside}}`;
+    },
+
     // 模板数据库
     templates: [
         // ============================== 一、声学与光学 (10个模板) ==============================
@@ -949,6 +966,295 @@ const PHYSICS_ENGINE = {
                         `1. 有用能量为水吸收的热量：$Q_{吸} = 2.1 \\times 10^6\\text{ J}$。`,
                         `2. 总接收能量为总能量：$Q_{总} = 4.2 \\times 10^6\\text{ J}$。`,
                         `3. 转化效率为：$\\eta = \\frac{Q_{吸}}{Q_{总}} \\times 100\\% = \\frac{2.1 \\times 10^6\\text{ J}}{4.2 \\times 10^6\\text{ J}} \\times 100\\% = 50\\%$。`
+                    ]
+                };
+            }
+        },
+
+        // ============================== 三、数学：数与式 (3个模板) ==============================
+        {
+            id: "math_perfect_sq",
+            category: "num-exp",
+            type: "calculation",
+            score: 20,
+            generator() {
+                // 已知和与积求平方和
+                const sum = PHYSICS_ENGINE.randomPick([5, 6, 7, 8]);
+                const prod = PHYSICS_ENGINE.randomPick([2, 3, 4, 5, 6]);
+                const sqSum = sum * sum - 2 * prod;
+                return {
+                    question: `已知两个数 $a$ 和 $b$ 满足关系式：$a + b = ${sum}$，$ab = ${prod}$。求 $a^2 + b^2$ 的代数式值。`,
+                    answer: `${sqSum}`,
+                    steps: [
+                        `1. 根据初中代数完全平方公式展开：$(a + b)^2 = a^2 + 2ab + b^2$。`,
+                        `2. 变形可得求平方和的公式：$a^2 + b^2 = (a + b)^2 - 2ab$。`,
+                        `3. 代入已知数 $a+b = ${sum}$ 和 $ab = ${prod}$：`,
+                        `   $a^2 + b^2 = (${sum})^2 - 2 \\times ${prod} = ${sum*sum} - ${2*prod} = ${sqSum}$。`,
+                        `**答：** $a^2 + b^2$ 的值是 $${sqSum}$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "math_square_diff",
+            category: "num-exp",
+            type: "fill",
+            score: 10,
+            generator() {
+                // 平方差公式计算
+                const sum = PHYSICS_ENGINE.randomPick([5, 6, 8, 10]);
+                const diff = PHYSICS_ENGINE.randomPick([2, 3, 4]);
+                const ans = sum * diff;
+                return {
+                    question: `已知 $x + y = ${sum}$，$x - y = ${diff}$，则代数式 $x^2 - y^2$ 的值为___________。`,
+                    answer: `${ans}`,
+                    steps: [
+                        `1. 根据平方差公式进行因式分解：$x^2 - y^2 = (x + y)(x - y)$。`,
+                        `2. 代入已知项 $x+y = ${sum}$ 和 $x-y = ${diff}$：`,
+                        `   $x^2 - y^2 = ${sum} \\times ${diff} = ${ans}$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "math_sqrt_simplify",
+            category: "num-exp",
+            type: "fill",
+            score: 10,
+            generator() {
+                // 二次根式化简
+                const raw = PHYSICS_ENGINE.randomPick([8, 12, 18, 20, 24, 27, 28, 32, 40, 45, 48, 50, 72, 75]);
+                const simplified = PHYSICS_ENGINE.simplifySqrt(raw);
+                return {
+                    question: `化简二次根式：$\\sqrt{${raw}} = $___________。`,
+                    answer: `${simplified}`,
+                    steps: [
+                        `1. 将被开方数 $${raw}$ 拆解为最大完全平方数与其他因数的乘积。`,
+                        `2. 寻找因数：找出 $${raw}$ 中的平方数因子，并通过 $\\sqrt{a^2 b} = a\\sqrt{b}$ 进行开方提取。`,
+                        `   化简结果为：$${simplified}$。`
+                    ]
+                };
+            }
+        },
+
+        // ============================== 四、数学：方程与函数 (3个模板) ==============================
+        {
+            id: "math_quadratic_eq",
+            category: "eq-func",
+            type: "calculation",
+            score: 20,
+            generator() {
+                // 保证整根的一元二次方程求解
+                const x1 = PHYSICS_ENGINE.randomPick([-3, -2, -1, 1, 2, 3]);
+                const x2 = PHYSICS_ENGINE.randomPick([4, 5, -4, -5]); // 保证根不相等
+                const b_coeff = -(x1 + x2);
+                const c_coeff = x1 * x2;
+                
+                let bText = b_coeff >= 0 ? `+ ${b_coeff}` : `- ${Math.abs(b_coeff)}`;
+                if (b_coeff === 0) bText = "";
+                let cText = c_coeff >= 0 ? `+ ${c_coeff}` : `- ${Math.abs(c_coeff)}`;
+                if (c_coeff === 0) cText = "";
+
+                const delta = b_coeff * b_coeff - 4 * c_coeff;
+                const roots = [x1, x2].sort((a,b)=>a-b);
+
+                return {
+                    question: `解一元二次方程：$x^2 ${bText}x ${cText} = 0$。`,
+                    answer: `x1 = ${roots[0]}, x2 = ${roots[1]}`,
+                    steps: [
+                        `1. 确定方程系数：$a = 1$，$b = ${b_coeff}$，$c = ${c_coeff}$。`,
+                        `2. 计算根的判别式 $\\Delta$：`,
+                        `   $\\Delta = b^2 - 4ac = (${b_coeff})^2 - 4 \\times 1 \\times (${c_coeff}) = ${b_coeff*b_coeff} - (${4*c_coeff}) = ${delta}$。`,
+                        `   因为 $\\Delta = ${delta} > 0$，所以方程有两个不相等的实数根。`,
+                        `3. 代入求根公式 $x = \\frac{-b \\pm \\sqrt{\\Delta}}{2a}$：`,
+                        `   $x = \\frac{-(${b_coeff}) \\pm \\sqrt{${delta}}}{2 \\times 1} = \\frac{-${b_coeff} \\pm ${Math.sqrt(delta)}}{2}$。`,
+                        `4. 拆分求解两个实数根：`,
+                        `   $x_1 = \\frac{-${b_coeff} + ${Math.sqrt(delta)}}{2} = ${x1}$；`,
+                        `   $x_2 = \\frac{-${b_coeff} - ${Math.sqrt(delta)}}{2} = ${x2}$。`,
+                        `**答：** 方程的解为 $x_1 = ${roots[0]}$，$x_2 = ${roots[1]}$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "math_linear_func",
+            category: "eq-func",
+            type: "calculation",
+            score: 20,
+            generator() {
+                // 待定系数法求一次函数
+                const k = PHYSICS_ENGINE.randomPick([2, 3, -1, -2]);
+                const b = PHYSICS_ENGINE.randomPick([1, 2, 4, 5, -1, -3]);
+                const x1 = 1;
+                const y1 = k * x1 + b;
+                const x2 = 3;
+                const y2 = k * x2 + b;
+                
+                let bText = b >= 0 ? `+ ${b}` : `- ${Math.abs(b)}`;
+                if (b === 0) bText = "";
+
+                return {
+                    question: `已知一次函数 $y = kx + b$ 的图象经过两点 $A(1, ${y1})$ 和 $B(3, ${y2})$。求该一次函数的解析式。`,
+                    answer: `y = ${k}x ${bText}`,
+                    steps: [
+                        `1. 将点 $A(1, ${y1})$ 和 $B(3, ${y2})$ 的坐标分别代入解析式中，列出二元一次方程组：`,
+                        `   $\\begin{cases} ${y1} = k + b \\quad \\text{①} \\\\ ${y2} = 3k + b \\quad \\text{②} \\end{cases}$。`,
+                        `2. 采用加减消元法，用方程 ② 减去方程 ① 消去 $b$：`,
+                        `   $(${y2}) - (${y1}) = 3k - k \\implies ${y2-y1} = 2k \\implies k = ${k}$。`,
+                        `3. 将 $k = ${k}$ 代入方程 ① 求解常数项 $b$：`,
+                        `   $${y1} = ${k} + b \\implies b = ${y1} - ${k} = ${b}$。`,
+                        `4. 确定一次函数解析式：`,
+                        `   $y = ${k}x ${bText}$。`,
+                        `**答：** 该一次函数的解析式为 $y = ${k}x ${bText}$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "math_quadratic_vertex",
+            category: "eq-func",
+            type: "fill",
+            score: 10,
+            generator() {
+                // 二次函数顶点对称轴
+                const xv = PHYSICS_ENGINE.randomPick([1, 2, 3, -1, -2]);
+                const yv = PHYSICS_ENGINE.randomPick([2, 3, 5, -1, -4]);
+                // y = (x-xv)^2 + yv = x^2 - 2xv*x + xv^2+yv
+                const b = -2 * xv;
+                const c = xv * xv + yv;
+                
+                let bText = b >= 0 ? `+ ${b}` : `- ${Math.abs(b)}`;
+                if (b === 0) bText = "";
+                let cText = c >= 0 ? `+ ${c}` : `- ${Math.abs(c)}`;
+                if (c === 0) cText = "";
+
+                return {
+                    question: `抛物线 $y = x^2 ${bText}x ${cText}$ 的对称轴方程为___________；该抛物线的顶点坐标是___________。`,
+                    answer: `直线 x = ${xv}；(${xv}, ${yv})`,
+                    steps: [
+                        `1. 对称轴公式：$x = -\\frac{b}{2a} = -\\frac{${b}}{2 \\times 1} = ${xv}$。对称轴为直线 $x = ${xv}$。`,
+                        `2. 将对称轴的横坐标 $x = ${xv}$ 代入抛物线解析式，求顶点纵坐标：`,
+                        `   $y = (${xv})^2 ${b>=0?'+':'-'} ${Math.abs(b)} \\times (${xv}) ${c>=0?'+':'-'} ${Math.abs(c)} = ${xv*xv} ${b>=0?'+':'-'} ${Math.abs(b*xv)} ${c>=0?'+':'-'} ${Math.abs(c)} = ${yv}$。`,
+                        `   也可以代入公式 $y = \\frac{4ac-b^2}{4a} = \\frac{4 \\times 1 \\times ${c} - (${b})^2}{4} = ${yv}$。`,
+                        `3. 因此顶点坐标为 $(${xv}, ${yv})$。`
+                    ]
+                };
+            }
+        },
+
+        // ============================== 五、数学：几何与图形 (3个模板) ==============================
+        {
+            id: "math_pythagoras_c",
+            category: "geom",
+            type: "calculation",
+            score: 20,
+            generator() {
+                // 已知直角边求斜边
+                const triple = PHYSICS_ENGINE.randomPick([
+                    [3, 4, 5], [5, 12, 13], [6, 8, 10], [8, 15, 17]
+                ]);
+                const a = triple[0];
+                const b = triple[1];
+                const c = triple[2];
+                return {
+                    question: `在直角三角形 $ABC$ 中，$\\angle C = 90^\\circ$。已知两条直角边分别为 $a = ${a}$ 和 $b = ${b}$。求斜边 $c$ 的长度。`,
+                    answer: `${c}`,
+                    steps: [
+                        `1. 在直角三角形中，已知两直角边，根据勾股定理可求斜边：$a^2 + b^2 = c^2$。`,
+                        `2. 代入直角边数值 $a = ${a}$，$b = ${b}$：`,
+                        `   $c = \\sqrt{a^2 + b^2} = \\sqrt{${a}^2 + ${b}^2} = \\sqrt{${a*a} + ${b*b}} = \\sqrt{${a*a+b*b}} = ${c}$。`,
+                        `**答：** 斜边 $c$ 的长度是 $${c}$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "math_pythagoras_a",
+            category: "geom",
+            type: "fill",
+            score: 10,
+            generator() {
+                // 已知斜边求直角边
+                const triple = PHYSICS_ENGINE.randomPick([
+                    [3, 4, 5], [5, 12, 13], [6, 8, 10], [8, 15, 17]
+                ]);
+                const a = triple[0];
+                const b = triple[1];
+                const c = triple[2];
+                return {
+                    question: `在直角三角形中，斜边长度为 $${c}$，其中一条直角边长度为 $${b}$。则另一条直角边长度为___________。`,
+                    answer: `${a}`,
+                    steps: [
+                        `1. 根据直角三角形勾股定理公式 $a^2 + b^2 = c^2$，变形求直角边：`,
+                        `   $a = \\sqrt{c^2 - b^2}$。`,
+                        `2. 代入已知数据 $c = ${c}$，$b = ${b}$：`,
+                        `   $a = \\sqrt{${c}^2 - ${b}^2} = \\sqrt{${c*c} - ${b*b}} = \\sqrt{${c*c-b*b}} = ${a}$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "math_sector_area",
+            category: "geom",
+            type: "calculation",
+            score: 20,
+            generator() {
+                // 扇形面积
+                const R = PHYSICS_ENGINE.randomPick([3, 6]);
+                const n = PHYSICS_ENGINE.randomPick([60, 90, 120, 180]);
+                const piCoef = (n * R * R) / 360;
+                const ans = piCoef * Math.PI;
+                return {
+                    question: `已知扇形的圆心角为 $${n}^\\circ$，半径为 $${R}\\text{ cm}$。求这个扇形的面积是多少 $\\text{cm}^2$？（结果保留 $\\pi$）`,
+                    answer: `${piCoef.toFixed(2).replace(/\.?0+$/, '')}π`,
+                    steps: [
+                        `1. 已知圆心角度数 $n = ${n}^\\circ$，半径 $R = ${R}\\text{ cm}$。`,
+                        `2. 根据扇形面积公式 $S = \\frac{n \\pi R^2}{360}$ 展开代入：`,
+                        `   $S = \\frac{${n} \\times \\pi \\times ${R}^2}{360} = \\frac{${n} \\times ${R*R} \\pi}{360} = \\frac{${n*R*R}\\pi}{360} = ${piCoef.toFixed(2).replace(/\.?0+$/, '')}\\pi$。`,
+                        `**答：** 扇形的面积是 $${piCoef.toFixed(2).replace(/\.?0+$/, '')}\\pi\\text{ cm}^2$。`
+                    ]
+                };
+            }
+        },
+
+        // ============================== 六、数学：概率与统计 (1个模板) ==============================
+        {
+            id: "math_stat_variance",
+            category: "stat-prob",
+            type: "calculation",
+            score: 20,
+            generator() {
+                // 平均数与方差计算
+                const dataset = PHYSICS_ENGINE.randomPick([
+                    { data: [2, 4, 6, 8, 10], mean: 6, var: 8 },
+                    { data: [1, 3, 5, 7, 9], mean: 5, var: 8 },
+                    { data: [3, 4, 5, 6, 7], mean: 5, var: 2 },
+                    { data: [4, 5, 6, 7, 8], mean: 6, var: 2 }
+                ]);
+                const str = dataset.data.join("，");
+                const n = dataset.data.length;
+                const mean = dataset.mean;
+                const v = dataset.var;
+
+                const diffSqStr = dataset.data.map(x => `(${x} - ${mean})^2`).join(" + ");
+                const diffValStr = dataset.data.map(x => `(${x-mean})^2`).join(" + ");
+                const sqSum = dataset.data.map(x => (x-mean)*(x-mean)).join(" + ");
+                const sqSumVal = dataset.data.map(x => (x-mean)*(x-mean)).reduce((a,b)=>a+b, 0);
+
+                return {
+                    question: `已知一组数据为：$${str}$。求：（1）这组数据的平均数是多少？（2）这组数据的方差是多少？`,
+                    answer: `(1) 平均数是 ${mean}；(2) 方差是 ${v}`,
+                    steps: [
+                        `**(1) 计算这组数据的平均数：**`,
+                        `数据的个数 $n = ${n}$。`,
+                        `平均数：$\\bar{x} = \\frac{${dataset.data.join(" + ")}}{${n}} = \\frac{${dataset.data.reduce((a,b)=>a+b,0)}}{${n}} = ${mean}$。`,
+                        `**(2) 计算这组数据的方差：**`,
+                        `根据方差公式 $s^2 = \\frac{1}{n} \\left[ (x_1 - \\bar{x})^2 + \\dots + (x_n - \\bar{x})^2 \\right]$：`,
+                        `$s^2 = \\frac{1}{${n}} \\left[ ${diffSqStr} \\right]$`,
+                        `$s^2 = \\frac{1}{${n}} \\left[ ${diffValStr} \\right]$`,
+                        `$s^2 = \\frac{1}{${n}} \\left[ ${sqSum} \\right]$`,
+                        `$s^2 = \\frac{1}{${n}} \\times ${sqSumVal} = ${v}$。`,
+                        `**答：** 这组数据的平均数是 $${mean}$，方差是 $${v}$。`
                     ]
                 };
             }

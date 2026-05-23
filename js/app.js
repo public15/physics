@@ -1,6 +1,6 @@
 /**
- * 初中物理提分宝典 - 前端核心交互逻辑
- * 支持：KaTeX 动态公式渲染、多选项卡卡片交互、单位自动换算计算器、中考模拟习题驱动、全局模糊搜索、深浅色模式、PDF 打印前置打包
+ * 初中数理提分宝典 - 前端核心交互逻辑
+ * 支持：物理/数学双学科一键重组、KaTeX 动态公式渲染、单位自动换算计算器、中考数理千题机驱动、深浅色模式、PDF 打印前置打包
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -8,7 +8,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // 1. 全局状态与配置
     // ----------------------------------------------------
     let state = {
-        currentCategory: "all",           // 当前选中的物理分支 (all, mechanics, etc.)
+        currentSubject: "physics",        // 当前选中的学科 (physics, math)
+        currentCategory: "all",           // 当前选中的学科分支
         currentView: "handbook",          // 当前主视图 (handbook, practice)
         printMode: "student",             // PDF 打印模式 (student, teacher)
         searchQuery: ""                   // 全局搜索词
@@ -25,6 +26,10 @@ document.addEventListener("DOMContentLoaded", () => {
         themeToggleBtn: document.getElementById("themeToggleBtn"),
         globalSearch: document.getElementById("globalSearch"),
         clearSearchBtn: document.getElementById("clearSearchBtn"),
+        
+        // 学科与 Logo 切换
+        logoText: document.getElementById("logoText"),
+        subjectSwitcher: document.getElementById("subjectSwitcher"),
         
         // SPA 视图切换
         btnShowHandbook: document.getElementById("btnShowHandbook"),
@@ -55,10 +60,53 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     // ----------------------------------------------------
-    // 3. 初始化入口
+    // 3. 学科切换与数据分流辅助函数
+    // ----------------------------------------------------
+    function getActiveDB() {
+        return state.currentSubject === "physics" ? PHYSICS_DB : MATH_DB;
+    }
+
+    function renderCategorySidebar() {
+        const db = getActiveDB();
+        DOM.categoryList.innerHTML = "";
+
+        const icons = {
+            // 物理
+            "all": "✨",
+            "mechanics": "⚙️",
+            "electricity": "⚡",
+            "thermodynamics": "🔥",
+            "acoustics-optics": "🌈",
+            // 数学
+            "num-exp": "📐",
+            "eq-func": "📈",
+            "geom": "🔵",
+            "stat-prob": "📊"
+        };
+
+        Object.keys(db.categories).forEach(cat => {
+            const isActive = cat === state.currentCategory ? "active" : "";
+            const li = document.createElement("li");
+            li.className = `nav-item ${isActive}`;
+            li.setAttribute("data-category", cat);
+            li.innerHTML = `
+                <span class="nav-icon">${icons[cat] || "✨"}</span>
+                <span class="nav-text">${db.categories[cat]}</span>
+                <span class="badge" id="badge-${cat}">0</span>
+            `;
+            DOM.categoryList.appendChild(li);
+        });
+
+        // 重新绑定侧边栏分类点击事件
+        bindSidebarClickEvents();
+    }
+
+    // ----------------------------------------------------
+    // 4. 初始化入口
     // ----------------------------------------------------
     function init() {
         initTheme();
+        renderCategorySidebar();
         updateCategoryBadges();
         renderFormulas();
         renderPracticeQuestions();
@@ -66,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ----------------------------------------------------
-    // 4. 主题设置与本地持久化
+    // 5. 主题设置与本地持久化
     // ----------------------------------------------------
     function initTheme() {
         const savedTheme = localStorage.getItem("physics-theme") || "theme-dark";
@@ -84,12 +132,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ----------------------------------------------------
-    // 5. 侧边栏数字徽标更新
+    // 6. 侧边栏数字徽标更新
     // ----------------------------------------------------
     function updateCategoryBadges() {
-        const counts = { all: PHYSICS_DB.formulas.length, mechanics: 0, electricity: 0, thermodynamics: 0, "acoustics-optics": 0 };
+        const db = getActiveDB();
+        const counts = { all: db.formulas.length };
         
-        PHYSICS_DB.formulas.forEach(f => {
+        Object.keys(db.categories).forEach(cat => {
+            counts[cat] = 0;
+        });
+
+        db.formulas.forEach(f => {
             if (counts[f.category] !== undefined) {
                 counts[f.category]++;
             }
@@ -106,9 +159,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // ----------------------------------------------------
     function renderFormulas() {
         DOM.formulasGrid.innerHTML = "";
+        const db = getActiveDB();
         
         // 过滤数据：同时支持侧边栏类别与全局搜索
-        const filteredFormulas = PHYSICS_DB.formulas.filter(f => {
+        const filteredFormulas = db.formulas.filter(f => {
             const matchCategory = state.currentCategory === "all" || f.category === state.currentCategory;
             
             let matchSearch = true;
@@ -145,7 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
             card.innerHTML = `
                 <div class="card-header">
                     <h3 class="card-title">${f.title}</h3>
-                    <span class="category-tag tag-${f.category}">${PHYSICS_DB.categories[f.category]}</span>
+                    <span class="category-tag tag-${f.category}">${db.categories[f.category]}</span>
                 </div>
                 
                 <div class="formula-display-box" id="display-${f.id}"></div>
@@ -161,7 +215,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <!-- Tab 1: 定义 -->
                     <div class="tab-pane active" data-tab-pane="def">
                         <p class="definition-text">${f.definition}</p>
-                        <div class="variables-title">物理量解读</div>
+                        <div class="variables-title">变量与解读</div>
                         <ul class="variables-list">
                             ${f.variables.map(v => `
                                 <li class="variable-row">
@@ -188,7 +242,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     <!-- Tab 3: 单位换算与交互计算器 -->
                     <div class="tab-pane" data-tab-pane="calc">
                         <div class="calc-inputs-container">
-                            ${f.variables.map(v => `
+                            ${f.id === 'variance_formula' ? `
+                                <div class="variance-calc-container">
+                                    <div class="variance-input-desc">请输入一组以英文逗号隔开的样本数据（如: 2, 4, 6, 8, 10）:</div>
+                                    <input type="text" class="variance-input-field calc-field" placeholder="例如: 2, 4, 6, 8, 10" data-var="list">
+                                </div>
+                            ` : f.variables.map(v => `
                                 <div class="calc-input-row">
                                     <span class="symbol" id="calc-sym-${f.id}-${v.symbol.replace(/[^a-zA-Z0-9]/g, '')}"></span>
                                     <input type="number" placeholder="请输入数值" data-var="${v.symbol}" class="calc-field">
@@ -209,7 +268,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <button class="reset-btn">清空</button>
                         </div>
                         <div class="calc-result-box">
-                            <span class="result-title">名师换算推导解析</span>
+                            <span class="result-title">名师解析代入步骤</span>
                             <span class="result-step"></span>
                         </div>
                     </div>
@@ -326,6 +385,56 @@ document.addEventListener("DOMContentLoaded", () => {
         // 计算按钮
         if (calcBtn) {
             calcBtn.addEventListener("click", () => {
+                // 特异性拦截：数学方差计算器一站式求解
+                if (formulaObj.id === "variance_formula") {
+                    const inputField = card.querySelector('.variance-input-field');
+                    const val = inputField.value.trim();
+                    if (!val) {
+                        alert("请输入一组数据，并用半角逗号隔开。");
+                        return;
+                    }
+                    const dataset = val.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+                    if (dataset.length < 2) {
+                        alert("为了计算均值和方差，请至少输入 2 个以上的数值。");
+                        return;
+                    }
+
+                    // 计算平均数
+                    const n = dataset.length;
+                    const sum = dataset.reduce((a,b)=>a+b, 0);
+                    const mean = sum / n;
+                    
+                    // 计算方差
+                    const diffSqs = dataset.map(x => (x - mean) * (x - mean));
+                    const sqSum = diffSqs.reduce((a,b)=>a+b, 0);
+                    const variance = sqSum / n;
+
+                    // 生成代入步骤
+                    const str = dataset.join("，");
+                    const diffSqStr = dataset.map(x => `(${x} - ${mean.toFixed(2).replace(/\.?0+$/, '')})^2`).join(" + ");
+                    const diffValStr = dataset.map(x => `(${(x - mean).toFixed(2).replace(/\.?0+$/, '')})^2`).join(" + ");
+                    const sqSumValStr = diffSqs.map(x => x.toFixed(4).replace(/\.?0+$/, '')).join(" + ");
+
+                    let stepText = `<div style='display:flex; flex-direction:column; gap:8px;'>`;
+                    stepText += `<div><strong>第一步：求数据的平均数 $\\bar{x}$</strong><br>`;
+                    stepText += `数据个数 $n = ${n}$；\\\\`;
+                    stepText += `$\\bar{x} = \\frac{${dataset.join(" + ")}}{${n}} = \\frac{${sum.toFixed(2).replace(/\.?0+$/, '')}}{${n}} = <strong>${mean.toFixed(4).replace(/\.?0+$/, '')}</strong>`;
+                    stepText += `</div>`;
+
+                    stepText += `<div><strong>第二步：代入方差公式 $s^2 = \\frac{1}{n} \\sum (x_i - \\bar{x})^2$ 计算</strong><br>`;
+                    stepText += `$s^2 = \\frac{1}{${n}} \\left[ ${diffSqStr} \\right]$\\\\`;
+                    stepText += `$s^2 = \\frac{1}{${n}} \\left[ ${diffValStr} \\right]$\\\\`;
+                    stepText += `$s^2 = \\frac{1}{${n}} \\left[ ${sqSumValStr} \\right]$\\\\`;
+                    stepText += `$s^2 = \\frac{1}{${n}} \\times ${sqSum.toFixed(4).replace(/\.?0+$/, '')} = <strong>${variance.toFixed(6).replace(/\.?0+$/, '')}</strong>`;
+                    stepText += `</div>`;
+                    stepText += `</div>`;
+
+                    resultStep.innerHTML = stepText;
+                    renderMathInElement(resultStep);
+                    resultBox.classList.add("active");
+                    return;
+                }
+
                 // 1. 获取输入参数
                 let rawValues = {};
                 let chosenUnits = {};
@@ -444,33 +553,55 @@ document.addEventListener("DOMContentLoaded", () => {
     // ----------------------------------------------------
     function renderPracticeQuestions() {
         DOM.exercisesList.innerHTML = "";
-        
+        const db = getActiveDB();
         const cat = state.currentCategory;
+        const cacheKey = `${state.currentSubject}_${cat}`;
         
+        // 动态修改试卷的主标题
+        const examTitle = document.querySelector(".exam-main-title");
+        if (examTitle) {
+            examTitle.textContent = state.currentSubject === "physics" 
+                ? "初中物理中考专项突破·模拟练习卷" 
+                : "初中数学中考专项突破·模拟练习卷";
+        }
+
         // 如果该学科的 100 道题尚未生成，则调用智能引擎即时计算并写入缓存
-        if (!questionCache[cat]) {
-            if (cat === "all") {
-                // 组装一套综合题卷：35道力学，35道电学，20道热学，10道声光学 = 100道经典题
-                const mech = PHYSICS_ENGINE.generateQuestions("mechanics", 35);
-                const elec = PHYSICS_ENGINE.generateQuestions("electricity", 35);
-                const therm = PHYSICS_ENGINE.generateQuestions("thermodynamics", 20);
-                const acop = PHYSICS_ENGINE.generateQuestions("acoustics-optics", 10);
-                questionCache[cat] = [...mech, ...elec, ...therm, ...acop];
+        if (!questionCache[cacheKey]) {
+            if (state.currentSubject === "physics") {
+                if (cat === "all") {
+                    // 组装物理综合卷：35道力学，35道电学，20道热学，10道声光学 = 100道经典题
+                    const mech = PHYSICS_ENGINE.generateQuestions("mechanics", 35);
+                    const elec = PHYSICS_ENGINE.generateQuestions("electricity", 35);
+                    const therm = PHYSICS_ENGINE.generateQuestions("thermodynamics", 20);
+                    const acop = PHYSICS_ENGINE.generateQuestions("acoustics-optics", 10);
+                    questionCache[cacheKey] = [...mech, ...elec, ...therm, ...acop];
+                } else {
+                    questionCache[cacheKey] = PHYSICS_ENGINE.generateQuestions(cat, 100);
+                }
             } else {
-                // 单独类别生成 100 道
-                questionCache[cat] = PHYSICS_ENGINE.generateQuestions(cat, 100);
+                // 数学学科
+                if (cat === "all") {
+                    // 组装数学综合卷：35道数与式，35道方程与函数，20道几何，10道统计 = 100道经典题
+                    const numExp = PHYSICS_ENGINE.generateQuestions("num-exp", 35);
+                    const eqFunc = PHYSICS_ENGINE.generateQuestions("eq-func", 35);
+                    const geom = PHYSICS_ENGINE.generateQuestions("geom", 20);
+                    const statProb = PHYSICS_ENGINE.generateQuestions("stat-prob", 10);
+                    questionCache[cacheKey] = [...numExp, ...eqFunc, ...geom, ...statProb];
+                } else {
+                    questionCache[cacheKey] = PHYSICS_ENGINE.generateQuestions(cat, 100);
+                }
             }
         }
 
-        const filteredQuestions = questionCache[cat];
+        const filteredQuestions = questionCache[cacheKey];
         
         // 统一更新试卷的学科名称
-        DOM.examCategoryName.textContent = PHYSICS_DB.categories[cat];
+        DOM.examCategoryName.textContent = db.categories[cat];
 
         if (filteredQuestions.length === 0) {
             DOM.exercisesList.innerHTML = `
                 <div style="text-align:center; padding: 40px; color:var(--text-muted);">
-                    <p>📝 该物理分类下暂无精选习题，请切换分类查看其他题目。</p>
+                    <p>📝 该分类下暂无精选习题，请切换分类查看其他题目。</p>
                 </div>
             `;
             return;
@@ -629,7 +760,53 @@ document.addEventListener("DOMContentLoaded", () => {
             switchView("practice");
         });
 
-        // D. 侧边栏分类选择
+        // D. 学科双雄切换监听
+        const subjectTabs = DOM.subjectSwitcher.querySelectorAll(".subject-tab");
+        subjectTabs.forEach(tab => {
+            tab.addEventListener("click", () => {
+                const sub = tab.getAttribute("data-subject");
+                if (sub === state.currentSubject) return;
+
+                subjectTabs.forEach(t => t.classList.remove("active"));
+                tab.classList.add("active");
+
+                state.currentSubject = sub;
+                state.currentCategory = "all"; // 重置回全部
+
+                // 动态更新 Logo 样式及内容
+                DOM.logoText.innerHTML = sub === "physics" 
+                    ? `Physics<span>Hub</span>` 
+                    : `Math<span>Hub</span>`;
+                
+                // 动态修改侧边栏及专项练习的说明文案
+                const quickPrintDesc = document.querySelector(".quick-card-desc");
+                if (quickPrintDesc) {
+                    quickPrintDesc.textContent = sub === "physics"
+                        ? "生成精美的 A4 物理学习手册，方便打印成实体笔记或复习资料。"
+                        : "生成精美的 A4 数学学习手册，方便打印成实体笔记或复习资料。";
+                }
+                const practiceDesc = document.querySelector("#practiceSection .section-subtitle");
+                if (practiceDesc) {
+                    practiceDesc.textContent = sub === "physics"
+                        ? "专为中国中考物理精选的填空题与计算压轴题，适合打印手写自测。"
+                        : "专为中国中考数学精选的几何与代数计算题，适合打印手写自测。";
+                }
+
+                // 全面重组 UI 并渲染
+                renderCategorySidebar();
+                updateCategoryBadges();
+                
+                const db = getActiveDB();
+                DOM.currentCategoryTitle.textContent = `${db.categories.all}公式与定义`;
+
+                renderFormulas();
+                renderPracticeQuestions();
+            });
+        });
+    }
+
+    // 动态抽离侧边栏分类点击事件绑定
+    function bindSidebarClickEvents() {
         const sidebarItems = DOM.categoryList.querySelectorAll(".nav-item");
         sidebarItems.forEach(item => {
             item.addEventListener("click", () => {
@@ -638,8 +815,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 state.currentCategory = item.getAttribute("data-category");
                 
-                // 动态更新视图名称
-                DOM.currentCategoryTitle.textContent = `${PHYSICS_DB.categories[state.currentCategory]}公式与定义`;
+                const db = getActiveDB();
+                DOM.currentCategoryTitle.textContent = `${db.categories[state.currentCategory]}公式与定义`;
                 
                 // 重新渲染
                 renderFormulas();
