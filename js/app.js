@@ -411,7 +411,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const counts = { all: db.formulas.length };
         
         Object.keys(db.categories).forEach(cat => {
-            counts[cat] = 0;
+            if (cat !== "all") {
+                counts[cat] = 0;
+            }
         });
 
         db.formulas.forEach(f => {
