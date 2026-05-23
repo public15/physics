@@ -408,20 +408,26 @@ document.addEventListener("DOMContentLoaded", () => {
     // ----------------------------------------------------
     function updateCategoryBadges() {
         const db = getActiveDB();
-        const counts = { all: db.formulas.length };
+        const counts = {};
         
+        // 先将所有分类（包括 all）初始化为 0
         Object.keys(db.categories).forEach(cat => {
-            if (cat !== "all") {
-                counts[cat] = 0;
-            }
+            counts[cat] = 0;
         });
 
+        // 统计各子类公式数量
         db.formulas.forEach(f => {
             if (counts[f.category] !== undefined) {
                 counts[f.category]++;
             }
         });
 
+        // all = 所有子类之和
+        counts["all"] = Object.keys(counts)
+            .filter(cat => cat !== "all")
+            .reduce((sum, cat) => sum + counts[cat], 0);
+
+        // 更新 DOM
         Object.keys(counts).forEach(cat => {
             const badge = document.getElementById(`badge-${cat}`);
             if (badge) badge.textContent = counts[cat];
