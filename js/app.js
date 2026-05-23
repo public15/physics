@@ -382,6 +382,7 @@ document.addEventListener("DOMContentLoaded", () => {
         renderFormulas();
         renderPracticeQuestions();
         bindEvents();
+        initLightbox();
         FormulaAnimator.init();
     }
 
@@ -498,7 +499,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         ${f.imagePath ? `
                             <div class="formula-illustration-container">
                                 <div class="skeleton-glow"></div>
-                                <img src="${f.imagePath}" alt="${f.title}原理图解" class="formula-illustration-img" onload="this.previousElementSibling.remove()">
+                                <img src="${f.imagePath}" alt="${f.title}原理图解" class="formula-illustration-img" data-title="${f.title}原理图解" onload="this.previousElementSibling.remove()">
                             </div>
                         ` : ''}
                         <div class="variables-title">变量与解读</div>
@@ -1258,6 +1259,50 @@ document.addEventListener("DOMContentLoaded", () => {
             // 调用原生打印，由于我们的 CSS 对 @media print 做到了每一个维度的精确控制，直接导出即是标准的完美 A4 PDF！
             window.print();
         }, 800);
+    }
+
+    // ----------------------------------------------------
+    // 10a. 图片灯箱放大查看
+    // ----------------------------------------------------
+    function initLightbox() {
+        const lightbox     = document.getElementById("imgLightbox");
+        const lightboxImg  = document.getElementById("lightboxImg");
+        const lightboxCap  = document.getElementById("lightboxCaption");
+        const closeBtn     = document.getElementById("lightboxCloseBtn");
+        const backdrop     = document.getElementById("lightboxBackdrop");
+
+        function openLightbox(src, title) {
+            lightboxImg.src = src;
+            lightboxImg.alt = title;
+            lightboxCap.textContent = title;
+            lightbox.classList.remove("hidden");
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeLightbox() {
+            lightbox.classList.add("hidden");
+            document.body.style.overflow = "";
+            // 清空 src 避免残留
+            setTimeout(() => { lightboxImg.src = ""; }, 300);
+        }
+
+        // 事件委托：监听公式区域中所有插图图片
+        document.getElementById("formulasGrid").addEventListener("click", (e) => {
+            const img = e.target.closest(".formula-illustration-img");
+            if (!img) return;
+            openLightbox(img.src, img.dataset.title || img.alt);
+        });
+
+        // 关闭按钮 & 点击遮罩
+        closeBtn.addEventListener("click", closeLightbox);
+        backdrop.addEventListener("click", closeLightbox);
+
+        // ESC 键关闭
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && !lightbox.classList.contains("hidden")) {
+                closeLightbox();
+            }
+        });
     }
 
     // ----------------------------------------------------
