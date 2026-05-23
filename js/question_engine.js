@@ -1860,6 +1860,104 @@ const PHYSICS_ENGINE = {
             }
         },
         {
+            id: "math_poly_angles_calc",
+            category: "geom",
+            type: "fill",
+            score: 10,
+            generator() {
+                const n = PHYSICS_ENGINE.randomPick([5, 6, 8, 10, 12]);
+                const name = { 5: "五", 6: "六", 8: "八", 10: "十", 12: "十二" }[n];
+                const sum_in = (n - 2) * 180;
+                const angle_in = sum_in / n;
+                return {
+                    question: `多边形内角和应用：凸 $${n}$ 边形的内角和为___________$^\\circ$；若一个正多边形为正 $${name}$ 边形，则它的每个内角的度数为___________$^\\circ$。`,
+                    answer: `${sum_in}；${angle_in.toFixed(1).replace(/\.0$/, '')}`,
+                    steps: [
+                        `1. **内角和计算**：`,
+                        `   代入多边形内角和公式：$S_{内} = (n - 2) \\times 180^\\circ$。`,
+                        `   已知边数 $n = ${n}$：$S_{内} = (${n} - 2) \\times 180^\\circ = ${n-2} \\times 180^\\circ = ${sum_in}^\\circ$。`,
+                        `2. **正多边形单个内角计算**：`,
+                        `   每个内角的度数：$A_{内} = \\frac{S_{内}}{n} = \\frac{${sum_in}^\\circ}{${n}} = ${angle_in.toFixed(1).replace(/\.0$/, '')}^\\circ$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "math_poly_ext_angles",
+            category: "geom",
+            type: "fill",
+            score: 10,
+            generator() {
+                const angle_out = PHYSICS_ENGINE.randomPick([30, 36, 40, 45, 60]);
+                const n = 360 / angle_out;
+                const sum_in = (n - 2) * 180;
+                return {
+                    question: `多边形外角和经典考题：若一个正多边形的每个外角都等于 $${angle_out}^\\circ$，则这个正多边形的边数 $n = $___________；该正多边形的内角和为___________$^\\circ$。`,
+                    answer: `${n}；${sum_in}`,
+                    steps: [
+                        `1. **根据外角和逆解边数**：`,
+                        `   因为多边形的外角和恒等于 $360^\\circ$，且该正多边形的每个外角都相等。`,
+                        `   所以边数 $n = \\frac{360^\\circ}{A_{外}} = \\frac{360^\\circ}{${angle_out}^\\circ} = ${n}$（其为正 $${n}$ 边形）。`,
+                        `2. **内角和计算**：`,
+                        `   代入内角和公式：$S_{内} = (n - 2) \\times 180^\\circ = (${n} - 2) \\times 180^\\circ = ${n-2} \\times 180^\\circ = ${sum_in}^\\circ$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "math_similarity_ratio",
+            category: "geom",
+            type: "fill",
+            score: 10,
+            generator() {
+                const ratios = PHYSICS_ENGINE.randomPick([
+                    { kNum: 2, kDen: 3, sNum: 4, sDen: 9 },
+                    { kNum: 3, kDen: 4, sNum: 9, sDen: 16 },
+                    { kNum: 4, kDen: 5, sNum: 16, sDen: 25 },
+                    { kNum: 1, kDen: 2, sNum: 1, sDen: 4 },
+                    { kNum: 2, kDen: 5, sNum: 4, sDen: 25 }
+                ]);
+                return {
+                    question: `已知 $\\triangle ABC \\sim \\triangle A'B'C'$，它们的相似比（对应边长比）为 $${ratios.kNum} : ${ratios.kDen}$，则它们的周长之比为___________；若已知两个相似三角形的面积之比为 $${ratios.sNum} : ${ratios.sDen}$，则它们的对应高之比为___________。`,
+                    answer: `${ratios.kNum}:${ratios.kDen}；${ratios.kNum}:${ratios.kDen}`,
+                    steps: [
+                        `1. **相似三角形周长比的性质**：`,
+                        `   相似三角形的周长比等于相似比。因此周长比为 $${ratios.kNum} : ${ratios.kDen}$。`,
+                        `2. **相似三角形高之比与面积比的性质**：`,
+                        `   相似三角形的面积比等于相似比的平方。因此，相似比等于面积比的算术平方根。`,
+                        `   已知面积比为 $\\frac{S}{S'} = \\frac{${ratios.sNum}}{${ratios.sDen}}$，故相似比 $k = \\sqrt{\\frac{${ratios.sNum}}{${ratios.sDen}}} = \\frac{${ratios.kNum}}{${ratios.kDen}}$。`,
+                        `   因为相似三角形对应高之比也等于相似比，所以对应高之比为 $${ratios.kNum} : ${ratios.kDen}$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "math_similarity_apply",
+            category: "geom",
+            type: "calculation",
+            score: 20,
+            generator() {
+                const peopleHeight = 1.6;
+                const peopleShadow = PHYSICS_ENGINE.randomPick([2.0, 2.4, 2.5, 3.2]);
+                const treeShadow = PHYSICS_ENGINE.randomPick([10, 12, 15, 20]);
+                const treeHeight = (peopleHeight * treeShadow) / peopleShadow;
+                return {
+                    question: `相似实际应用：在同一时刻，身高 $${peopleHeight}\\text{ m}$ 的小明测得他在阳光下的影长为 $${peopleShadow}\\text{ m}$。若此时测得一棵大树在阳光下的影长为 $${treeShadow}\\text{ m}$，求这棵大树的高度是多少米？`,
+                    answer: `${treeHeight.toFixed(1).replace(/\.0$/, '')} m`,
+                    steps: [
+                        `1. **抽象相似三角形数学模型**：`,
+                        `   设大树高度为 $H\\text{ m}$。同一时刻，人高、人影长与树高、树影长分别构成两个相似直角三角形。`,
+                        `2. **建立相似比例关系式**：`,
+                        `   根据相似三角形对应边成比例：$\\frac{\\text{人高}}{\\text{人影长}} = \\frac{\\text{树高}}{\\text{树影长}}$。`,
+                        `   即：$\\frac{${peopleHeight}}{${peopleShadow}} = \\frac{H}{${treeShadow}}$。`,
+                        `3. **求解大树高度**：`,
+                        `   $H = \\frac{${peopleHeight} \\times ${treeShadow}}{${peopleShadow}} = ${treeHeight.toFixed(2).replace(/\.?0+$/, '')}\\text{ m}$。`,
+                        `**答：** 这棵大树的高度是 $${treeHeight.toFixed(1).replace(/\.0$/, '')}\\text{ m}$。`
+                    ]
+                };
+            }
+        },
+        {
             id: "math_unit_convert_vol",
             category: "geom",
             type: "fill",

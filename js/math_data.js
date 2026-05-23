@@ -458,6 +458,266 @@ const MATH_DB = {
                 }
             ]
         },
+        {
+            id: "triangle_congruence",
+            category: "geom",
+            title: "三角形全等的判定与性质",
+            symbolFormula: "\\triangle ABC \\cong \\triangle A'B'C' \\quad (SSS, SAS, ASA, AAS, HL)",
+            definition: "能够完全重合的两个三角形叫做全等三角形。全等三角形的对应边相等，对应角相等。判定三角形全等是初中几何逻辑证明的核心基石。",
+            variables: [
+                { symbol: "判定定理", name: "选择已知的相等条件", mainUnit: "定理", altUnits: [] }
+            ],
+            transformations: [
+                { resultSymbol: "对应边角", formula: "AB = A'B', \\angle A = \\angle A'", description: "全等三角形的对应边相等，对应角相等" }
+            ],
+            calculator: {
+                variables: ["判定定理"],
+                solve: (inputs) => {
+                    let method = inputs["判定定理"];
+                    if (method === null) return { error: "请选择一个全等判定条件组合进行判定。" };
+                    
+                    method = method.toString().toUpperCase().trim();
+                    
+                    const validMethods = ["SSS", "SAS", "ASA", "AAS", "HL"];
+                    if (validMethods.includes(method)) {
+                        let explain = "";
+                        if (method === "SSS") explain = "三边对应相等的两个三角形全等。";
+                        else if (method === "SAS") explain = "两边及其夹角对应相等的两个三角形全等。";
+                        else if (method === "ASA") explain = "两角及其夹边对应相等的两个三角形全等。";
+                        else if (method === "AAS") explain = "两角及其中一个角的对边对应相等的两个三角形全等。";
+                        else if (method === "HL") explain = "斜边与一直角边对应相等的两个直角三角形全等。";
+                        
+                        return {
+                            "判定定理": 1,
+                            step: `1. **判定结论**：选择条件组 **${method}**，<strong>可以判定全等</strong>！\\\\` +
+                                  `2. **判定定理说明**：${explain}\\\\` +
+                                  `3. **中考规范几何书写示范**：\\\\` +
+                                  `在 $\\triangle ABC$ 和 $\\triangle A'B'C'$ 中，\\\\` +
+                                  `\\begin{cases} \\text{条件 } 1 \\\\ \\text{条件 } 2 \\\\ \\text{条件 } 3 \\end{cases}\\\\` +
+                                  `\\implies \\triangle ABC \\cong \\triangle A'B'C' \\quad (\\text{${method}})\\\\` +
+                                  `\\implies \\text{性质推广：对应边相等，对应角相等。}`
+                        };
+                    } else if (method === "SSA") {
+                        return {
+                            error: "【警惕中考失分点】“边边角”不能判定全等！",
+                            step: `1. **判定结论**：选择条件组 **SSA (边边角)**，<strong>不能判定三角形全等</strong>！\\\\` +
+                                  `2. **反例解剖（防雷区）**：已知两边和其中一边的对角相等，由于该角不是夹角，无法唯一确定三角形的形状。在实际作图中，可以画出**一个锐角三角形和一个钝角三角形**同时满足这组 SSA 条件，两者显然不重合。\\\\` +
+                                  `3. **名师叮嘱**：中考几何大题中，请千万警惕写出 SSA，这是极高频的经典扣分雷区！`
+                        };
+                    } else if (method === "AAA") {
+                        return {
+                            error: "“角角角”不能判定全等！",
+                            step: `1. **判定结论**：选择条件组 **AAA (角角角)**，<strong>不能判定全等</strong>！\\\\` +
+                                  `2. **原理解析**：三个角对应相等的两个三角形，形状虽然相同，但大小不一定相等（可以等比例放大或缩小）。\\\\` +
+                                  `3. **性质关系**：AAA 只能判定两三角形**相似**（相似三角形），而非全等。`
+                        };
+                    }
+                    
+                    return { error: "未知的判定条件，请选择 SSS, SAS, ASA, AAS, HL, SSA 或 AAA。" };
+                }
+            },
+            examples: [
+                {
+                    question: "已知 $\\triangle ABC$ 和 $\\triangle A'B'C'$ 中，$AB = A'B'$，$\\angle B = \\angle B'$，$BC = B'C'$。求证：$\\triangle ABC \\cong \\triangle A'B'C'$。",
+                    steps: [
+                        "1. 梳理已知条件：已知两组对应边 $AB = A'B'$， $BC = B'C'$，以及两边的夹角 $\\angle B = \\angle B'$。",
+                        "2. 匹配判定定理：符合“两边及其夹角对应相等”条件，即 **SAS (边角边)** 定理。",
+                        "3. 规范书写几何证明：",
+                        "   在 $\\triangle ABC$ 和 $\\triangle A'B'C'$ 中，",
+                        "   $\\begin{cases} AB = A'B' \\\\ \\angle B = \\angle B' \\\\ BC = B'C' \\end{cases}$，",
+                        "   $\\implies \\triangle ABC \\cong \\triangle A'B'C' \\quad (\\text{SAS})$。",
+                        "**答：** 两个三角形依据 SAS 定理全等。"
+                    ]
+                }
+            ]
+        },
+        {
+            id: "triangle_similarity",
+            category: "geom",
+            title: "相似三角形周长与面积比",
+            symbolFormula: "\\triangle ABC \\sim \\triangle A'B'C' \\implies \\frac{C}{C'} = k, \\quad \\frac{S}{S'} = k^2",
+            definition: "如果两个三角形相似，那么它们的周长比等于相似比 $k$（对应边长之比），面积比等于相似比的平方 $k^2$。这是中考计算几何大题中的核心数量转换法。",
+            variables: [
+                { symbol: "k", name: "相似比 k (边长比)", mainUnit: "比值", altUnits: [] },
+                { symbol: "C_ratio", name: "周长比 (C/C')", mainUnit: "比值", altUnits: [] },
+                { symbol: "S_ratio", name: "面积比 (S/S')", mainUnit: "比值", altUnits: [] }
+            ],
+            transformations: [
+                { resultSymbol: "S_{比}", formula: "S_{比} = k^2", description: "相似三角形面积比等于相似比的平方" },
+                { resultSymbol: "k", formula: "k = \\sqrt{S_{比}}", description: "相似比等于面积比的算术平方根" }
+            ],
+            calculator: {
+                variables: ["k", "C_ratio", "S_ratio"],
+                solve: (inputs) => {
+                    let k = inputs["k"];
+                    let C = inputs["C_ratio"];
+                    let S = inputs["S_ratio"];
+                    
+                    let filledCount = 0;
+                    if (k !== null) filledCount++;
+                    if (C !== null) filledCount++;
+                    if (S !== null) filledCount++;
+                    
+                    if (filledCount === 0) return { error: "请至少输入 1 项已知数以推导其余项。" };
+                    
+                    if (k !== null) {
+                        if (k <= 0) return { error: "相似比 k 必须大于 0！" };
+                        const cAns = k;
+                        const sAns = k * k;
+                        return {
+                            "C_ratio": cAns,
+                            "S_ratio": sAns,
+                            step: `1. **周长比推导**：根据性质，相似三角形周长比等于相似比：\\\\` +
+                                  `\\frac{C}{C'} = k = <strong>${k.toFixed(2).replace(/\.?0+$/, '')}</strong>；\\\\` +
+                                  `2. **面积比推导**：相似三角形面积比等于相似比的平方：\\\\` +
+                                  `\\frac{S}{S'} = k^2 = ${k.toFixed(2).replace(/\.?0+$/, '')}^2 = <strong>${sAns.toFixed(4).replace(/\.?0+$/, '')}</strong>。`
+                        };
+                    }
+                    
+                    if (C !== null) {
+                        if (C <= 0) return { error: "周长比必须大于 0！" };
+                        const kAns = C;
+                        const sAns = C * C;
+                        return {
+                            "k": kAns,
+                            "S_ratio": sAns,
+                            step: `1. **相似比推导**：根据周长比等于相似比：\\\\` +
+                                  `k = \\frac{C}{C'} = <strong>${C.toFixed(2).replace(/\.?0+$/, '')}</strong>；\\\\` +
+                                  `2. **面积比推导**：面积比等于相似比的平方（即周长比的平方）：\\\\` +
+                                  `\\frac{S}{S'} = k^2 = ${C.toFixed(2).replace(/\.?0+$/, '')}^2 = <strong>${sAns.toFixed(4).replace(/\.?0+$/, '')}</strong>。`
+                        };
+                    }
+                    
+                    if (S !== null) {
+                        if (S <= 0) return { error: "面积比必须大于 0！" };
+                        const kAns = Math.sqrt(S);
+                        const cAns = kAns;
+                        return {
+                            "k": kAns,
+                            "C_ratio": cAns,
+                            step: `1. **相似比推导**：相似三角形的相似比等于面积比的算术平方根：\\\\` +
+                                  `k = \\sqrt{\\frac{S}{S'}} = \\sqrt{${S.toFixed(4).replace(/\.?0+$/, '')}} = <strong>${kAns.toFixed(4).replace(/\.?0+$/, '')}</strong>；\\\\` +
+                                  `2. **周长比推导**：周长比等于相似比：\\\\` +
+                                  `\\frac{C}{C'} = k = <strong>${cAns.toFixed(4).replace(/\.?0+$/, '')}</strong>。`
+                        };
+                    }
+                    
+                    return null;
+                }
+            },
+            examples: [
+                {
+                    question: "若 $\\triangle ABC \\sim \\triangle A'B'C'$，已知对应中线比为 $2:3$，$\\triangle ABC$ 的面积为 $16\\text{ cm}^2$。求 $\\triangle A'B'C'$ 的面积。",
+                    steps: [
+                        "1. 明确对应线段比即相似比：相似比 $k = \\frac{2}{3}$。",
+                        "2. 应用相似三角形面积比定理：面积比 $\\frac{S}{S'} = k^2 = (\\frac{2}{3})^2 = \\frac{4}{9}$。",
+                        "3. 代入已知面积求解方程：$\\frac{16}{S'} = \\frac{4}{9} \\implies 4S' = 144 \\implies S' = 36$。",
+                        "**答：** $\\triangle A'B'C'$ 的面积是 $36\\text{ cm}^2$。"
+                    ]
+                }
+            ]
+        },
+        {
+            id: "polygon_angles",
+            category: "geom",
+            title: "多边形内角和与外角和定理",
+            symbolFormula: "S_{内} = (n - 2) \\times 180^\\circ, \\quad S_{外} = 360^\\circ",
+            definition: "任意凸 $n$ 边形的内角和等于 $(n-2) \\times 180^\\circ$。任意多边形的外角和恒等于 $360^\\circ$ (与边数无关)。正多边形每个内角与外角平分所有角。",
+            variables: [
+                { symbol: "n", name: "多边形边数 n", mainUnit: "条", altUnits: [] },
+                { symbol: "sum_in", name: "内角和 (S_内)", mainUnit: "度", altUnits: [] },
+                { symbol: "angle_in", name: "正多边形单内角", mainUnit: "度", altUnits: [] }
+            ],
+            transformations: [
+                { resultSymbol: "n", formula: "n = \\frac{S_{内}}{180} + 2", description: "已知内角和求边数" },
+                { resultSymbol: "angle_{外}", formula: "angle_{外} = \\frac{360^\\circ}{n}", description: "正多边形单个外角度数" }
+            ],
+            calculator: {
+                variables: ["n", "sum_in", "angle_in"],
+                solve: (inputs) => {
+                    let n = inputs["n"];
+                    let sumIn = inputs["sum_in"];
+                    let angleIn = inputs["angle_in"];
+                    
+                    let filledCount = 0;
+                    if (n !== null) filledCount++;
+                    if (sumIn !== null) filledCount++;
+                    if (angleIn !== null) filledCount++;
+                    
+                    if (filledCount === 0) return { error: "请输入边数、内角和或单个内角以进行求解。" };
+                    
+                    if (n !== null) {
+                        if (n < 3) return { error: "多边形边数 n 必须大于等于 3！" };
+                        if (!Number.isInteger(n)) return { error: "边数 n 必须为整数！" };
+                        
+                        const sIn = (n - 2) * 180;
+                        const aIn = sIn / n;
+                        const aOut = 360 / n;
+                        
+                        return {
+                            "sum_in": sIn,
+                            "angle_in": aIn,
+                            step: `1. **内角和计算**：代入内角和公式：\\\\` +
+                                  `S_{内} = (n - 2) \\times 180^\\circ = (${n} - 2) \\times 180^\\circ = <strong>${sIn}^\\circ</strong>；\\\\` +
+                                  `2. **外角和结论**：凸多边形的外角和恒等于 **$360^\\circ$**；\\\\` +
+                                  `3. **正多边形单角**（如为正多边形）：\\\\` +
+                                  `单个内角：$A_{内} = \\frac{S_{内}}{n} = \\frac{${sIn}^\\circ}{${n}} = <strong>${aIn.toFixed(2).replace(/\.?0+$/, '')}^\\circ</strong>；\\\\` +
+                                  `单个外角：$A_{外} = \\frac{360^\\circ}{n} = \\frac{360^\\circ}{${n}} = <strong>${aOut.toFixed(2).replace(/\.?0+$/, '')}^\\circ</strong>。`
+                        };
+                    }
+                    
+                    if (sumIn !== null) {
+                        if (sumIn <= 0 || sumIn % 180 !== 0) return { error: "内角和必须是 180° 的正整数倍！" };
+                        const nAns = sumIn / 180 + 2;
+                        const aIn = sumIn / nAns;
+                        return {
+                            "n": nAns,
+                            "angle_in": aIn,
+                            step: `1. **多边形边数逆求**：根据内角和公式 $(n-2) \\times 180^\\circ = S_{内}$ 列方程：\\\\` +
+                                  `(n - 2) \\times 180^\\circ = ${sumIn}^\\circ \\\\` +
+                                  `n - 2 = \\frac{${sumIn}}{180} = ${sumIn / 180} \\\\` +
+                                  `n = ${sumIn / 180} + 2 = <strong>${nAns}</strong>（其为 **${nAns}边形**）；\\\\` +
+                                  `2. **正多边形单角**（若为正多边形）：\\\\` +
+                                  `单个内角：$A_{内} = \\frac{${sumIn}^\\circ}{${nAns}} = <strong>${aIn.toFixed(2).replace(/\.?0+$/, '')}^\\circ</strong>。`
+                        };
+                    }
+                    
+                    if (angleIn !== null) {
+                        if (angleIn <= 0 || angleIn >= 180) return { error: "单个内角必须在 0° 到 180° 之间！" };
+                        const angleOut = 180 - angleIn;
+                        const nAns = 360 / angleOut;
+                        
+                        if (!Number.isInteger(nAns)) {
+                            return { error: `单个内角为 ${angleIn}° 时无法构成正多边形（边数必须为正整数，算得边数约为 ${nAns.toFixed(2)}）` };
+                        }
+                        
+                        const sIn = (nAns - 2) * 180;
+                        return {
+                            "n": nAns,
+                            "sum_in": sIn,
+                            step: `1. **外角换算**：单个外角为：\\\\` +
+                                  `A_{外} = 180^\\circ - A_{内} = 180^\\circ - ${angleIn}^\\circ = <strong>${angleOut}^\\circ</strong>；\\\\` +
+                                  `2. **多边形边数逆求**：利用外角和恒为 $360^\\circ$ 的定理求边数 $n$：\\\\` +
+                                  `n = \\frac{360^\\circ}{A_{外}} = \\frac{360^\\circ}{${angleOut}^\\circ} = <strong>${nAns}</strong>（即为 **正 ${nAns} 边形**）；\\\\` +
+                                  `3. **内角和计算**：\\\\` +
+                                  `S_{内} = (${nAns} - 2) \\times 180^\\circ = <strong>${sIn}^\\circ</strong>。`
+                        };
+                    }
+                    
+                    return null;
+                }
+            },
+            examples: [
+                {
+                    question: "若一个正多边形的每个内角都等于 $135^\\circ$。求这个多边形的边数 $n$。",
+                    steps: [
+                        "1. 计算对应的单个外角：$A_{外} = 180^\\circ - A_{内} = 180^\\circ - 135^\\circ = 45^\\circ$。",
+                        "2. 利用多边形外角和恒为 $360^\\circ$ 计算边数：$n = \\frac{360^\\circ}{A_{外}} = \\frac{360^\\circ}{45^\\circ} = 8$。",
+                        "**答：** 这个多边形的边数 $n$ 是 $8$（即正八边形）。"
+                    ]
+                }
+            ]
+        },
 
         // ================= 四、概率与统计 =================
         {

@@ -509,7 +509,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 </div>
                             `).join('')}
                         </div>
-                        ${['speed', 'ohms-law', 'specific-heat', 'pythagorean_theorem', 'lens-imaging'].includes(f.id) ? `
+                        ${['speed', 'ohms-law', 'specific-heat', 'pythagorean_theorem', 'lens-imaging', 'triangle_congruence', 'triangle_similarity', 'polygon_angles'].includes(f.id) ? `
                             <button class="anim-trigger-btn" data-anim-type="trans" data-formula-id="${f.id}">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
                                 🎬 启动公式变形推导动画
@@ -1664,6 +1664,63 @@ document.addEventListener("DOMContentLoaded", () => {
                     formula: "y = ax^2 + bx + c \\quad (c \\text{ 决定与 y 轴交点})",
                     desc: "5. **c 定截距**：常数项 $c$ 决定了抛物线与 y 轴的交点坐标为 $(0, c)$。顶点坐标公式为 $(-\\frac{b}{2a}, \\frac{4ac-b^2}{4a})$。"
                 }
+            ],
+            // 10. 三角形全等判定动画
+            "triangle_congruence_trans": [
+                {
+                    formula: "\\triangle ABC \\cong \\triangle A'B'C' \\quad \\text{(判定：SSS, SAS, ASA, AAS, HL)}",
+                    desc: "1. **全等判定条件扫盲**：全等三角形是指能够完全重合的两个三角形。我们有 5 个经典的判定法则，分别是边边边(SSS)、边角边(SAS)、角边角(ASA)、角角边(AAS)以及直角三角形的斜边直角边定理(HL)。"
+                },
+                {
+                    formula: "\\text{大雷区：SSA (边边角) } \\color{#ef4444}{\\mathbf{\\times}}",
+                    desc: "2. **SSA (边边角) 为什么不能全等**：如果已知两个边和其中一个边的对角相等。由于角不是两边的夹角，这无法唯一确定三角形的形状。在实际几何作图中，你可以画出一个**锐角三角形**和一个**钝角三角形**同时满足这组 SSA 条件，两者显然不全等！中考极高频雷区，千万别用！"
+                },
+                {
+                    formula: "\\text{大雷区：AAA (角角角) } \\color{#ef4444}{\\mathbf{\\times}}",
+                    desc: "3. **AAA (角角角) 为什么不能全等**：三个角对应相等只能说明两个三角形形状一模一样，但它们的大小不一定相等（比如一个是手绘小三角形，一个是等比例放大后的宏观三角形）。AAA 只能判定**相似**，无法判定全等！"
+                },
+                {
+                    formula: "\\text{性质：全等三角形对应边相等，对应角相等}",
+                    desc: "4. **全等性质结论**：一旦两个三角形全等，它们的所有对应线段（对应边、对应高、对应中线、对应角平分线）全部相等，这是转化线段与角度逻辑推导的核心源泉。"
+                }
+            ],
+            // 11. 三角形相似比与面积比动画
+            "triangle_similarity_trans": [
+                {
+                    formula: "\\triangle ABC \\sim \\triangle A'B'C' \\implies \\text{相似比为 } k",
+                    desc: "1. **相似三角形本质**：相似三角形的三个角对应相等，三条边对应成比例。相似比 $k$ 就是对应边长（线段）的比值。"
+                },
+                {
+                    formula: "\\frac{\\text{周长 } C}{\\text{周长 } C'} = k \\quad \\text{(中线比、高比、角平分线比 } = k\\text{)}",
+                    desc: "2. **一维线性尺度比**：因为周长是由各边长一维相加得到的，所以周长之比等于相似比 $k$。同理，对应高之比、对应中线比也全部恒等于相似比 $k$。"
+                },
+                {
+                    formula: "\\frac{\\text{面积 } S}{\\text{面积 } S'} = k^2",
+                    desc: "3. **二维面积尺度比**：面积是由长 $\\times$ 宽两个维度计算出的。根据相似三角形面积比定理，面积之比等于相似比的**平方** $k^2$！"
+                },
+                {
+                    formula: "k = 2 \\implies \\text{面积比 } k^2 = 4 \\quad \\text{(2x2 晶格拉伸)}",
+                    desc: "4. **几何形象理解**：设大三角形的边长是小三角形的 2 倍（相似比 $k = 2$）。直观上，我们可以用 4 个小三角形完美拼接成一个大的相似三角形。所以相似比为 2 时，面积变为原来的 $2^2 = 4$ 倍！"
+                }
+            ],
+            // 12. 多边形内外角和口诀动画
+            "polygon_angles_trans": [
+                {
+                    formula: "S_{内} = (n - 2) \\times 180^\\circ \\quad (n \\ge 3)",
+                    desc: "1. **内角和公式推导**：任意凸 $n$ 边形可以通过连接不相邻的顶点，将其分割为 $(n - 2)$ 个不重叠的三角形。因为每个三角形内角和为 $180^\\circ$，所以多边形内角和公式为 $(n - 2) \\times 180^\\circ$。"
+                },
+                {
+                    formula: "S_{外} = 360^\\circ \\quad \\text{(恒定不变，与边数 } n \\text{ 无关)}",
+                    desc: "2. **外角和定理（中考必背）**：任意凸多边形的外角和恒等于 $360^\\circ$！无论边数 $n$ 是 3 条、100 条还是 1000 条，外角和绝不随边数增加而改变，永远是 $360^\\circ$。"
+                },
+                {
+                    formula: "\\text{动画拆解：顶点平移缩减拼接法}",
+                    desc: "3. **外角和为什么恒定 360°**：想象一个人沿着多边形的边界绕行一周，在每个顶点处他转过的角度就是该处的外角。当他绕完多边形回到原点时，他刚好转了完整的一整圈！"
+                },
+                {
+                    formula: "\\lim_{n \\to \\infty} \\text{顶点平移} \\implies \\text{外角完美拼成圆周角 (360}^\\circ\\text{)}",
+                    desc: "4. **几何拼接口诀**：如果我们把多边形的每条边都平移，让所有顶点收缩汇聚于一个中心点。此时所有的外角拼在一起，刚好无缝围成一个完美的圆周角 $360^\\circ$！名师口诀：“**多边形边数无限加，外角和恒为三百六！**”"
+                }
             ]
         },
         
@@ -1721,7 +1778,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 "pythagorean_theorem": "直角三角形勾股定理",
                 "lens-imaging": "凸透镜成像规律",
                 "linear": "一次函数",
-                "quadratic": "二次函数"
+                "quadratic": "二次函数",
+                "triangle_congruence": "三角形全等判定",
+                "triangle_similarity": "相似三角形周长面积比",
+                "polygon_angles": "多边形内外角和定理"
             };
             const typeNames = {
                 "trans": "变形推导动画",
