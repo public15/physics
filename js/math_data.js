@@ -221,6 +221,7 @@ const MATH_DB = {
         },
         {
             id: "linear_function",
+            imagePath: "images/illustrations/linear_function.png",
             category: "eq-func",
             title: "一次函数解析式求法 (待定系数法)",
             symbolFormula: "y = kx + b \\quad (k \\ne 0)",
@@ -283,6 +284,7 @@ const MATH_DB = {
         },
         {
             id: "quadratic_function",
+            imagePath: "images/illustrations/quadratic_function.png",
             category: "eq-func",
             title: "二次函数顶点坐标与性质",
             symbolFormula: "y = ax^2 + bx + c \\quad (a \\ne 0)",
@@ -462,6 +464,7 @@ const MATH_DB = {
         },
         {
             id: "triangle_congruence",
+            imagePath: "images/illustrations/triangle_congruence.png",
             category: "geom",
             title: "三角形全等的判定与性质",
             symbolFormula: "\\triangle ABC \\cong \\triangle A'B'C' \\quad (SSS, SAS, ASA, AAS, HL)",

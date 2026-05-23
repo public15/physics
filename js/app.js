@@ -1464,6 +1464,7 @@ document.addEventListener("DOMContentLoaded", () => {
         isPlaying: false,
         playInterval: null,
         currentSteps: [],
+        renderTimeout: null,    // 渲染防抖定时器，保障高频连击绝对连贯
         DOM: {},
         
         // 5个经典公式和单位换算的步骤配置
@@ -1811,7 +1812,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const box = this.DOM.formulaBox;
             box.classList.add("anim-changing");
             
-            setTimeout(() => {
+            // 【核心重构：防抖锁】如果存在上一次尚未执行的渲染延时，立即予以取消！
+            // 这能彻底消除高频点击导致的渲染回调积压和乱序覆盖，保障播放极其流畅连贯。
+            if (this.renderTimeout) {
+                clearTimeout(this.renderTimeout);
+            }
+            
+            this.renderTimeout = setTimeout(() => {
                 // KaTeX 渲染
                 // 动态构建约分线条的 HTML 包裹（这里我们可以把特定需要画线的字母外面包一层类）
                 let renderedFormula = step.formula;
@@ -1843,6 +1850,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 this.DOM.desc.style.animation = "fadeInText 0.4s ease forwards";
                 
                 box.classList.remove("anim-changing");
+                this.renderTimeout = null; // 清除引用
             }, 150);
             
             // 更新步骤数字与进度条
