@@ -1,0 +1,1478 @@
+/* ----------------------------------------------------
+   初中物理提分宝典 - 视觉排版与动画样式系统
+   ---------------------------------------------------- */
+
+/* ================= 1. 基础配置与设计系统 ================= */
+:root {
+    /* 字体族定义 */
+    --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-heading: 'Outfit', 'Noto Sans SC', sans-serif;
+    
+    /* 统一过渡时间 */
+    --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* 圆角 */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+}
+
+/* --- 深色模式主题变量 (默认) --- */
+.theme-dark {
+    --bg-app: linear-gradient(135deg, #090d16 0%, #111827 100%);
+    --bg-body: #090d16;
+    --bg-card: rgba(22, 30, 49, 0.65);
+    --bg-card-hover: rgba(30, 41, 67, 0.85);
+    --bg-header: rgba(13, 20, 35, 0.75);
+    --bg-sidebar: rgba(13, 20, 35, 0.6);
+    --bg-input: rgba(17, 24, 39, 0.8);
+    --bg-pill: rgba(255, 255, 255, 0.06);
+    --bg-pill-active: rgba(255, 255, 255, 0.15);
+    
+    --border-color: rgba(255, 255, 255, 0.08);
+    --border-color-focus: rgba(168, 85, 247, 0.6);
+    
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+    --text-muted: #6b7280;
+    
+    --accent-gradient: linear-gradient(135deg, #c084fc 0%, #60a5fa 100%);
+    --accent-color: #a855f7;
+    --accent-secondary: #3b82f6;
+    --accent-glow: rgba(168, 85, 247, 0.15);
+    
+    --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    --card-shadow-hover: 0 20px 40px 0 rgba(168, 85, 247, 0.12);
+    
+    --math-box-bg: rgba(10, 15, 26, 0.8);
+    --calculator-result-bg: rgba(168, 85, 247, 0.08);
+}
+
+/* --- 浅色模式主题变量 --- */
+.theme-light {
+    --bg-app: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    --bg-body: #f8fafc;
+    --bg-card: rgba(255, 255, 255, 0.8);
+    --bg-card-hover: rgba(255, 255, 255, 0.95);
+    --bg-header: rgba(255, 255, 255, 0.8);
+    --bg-sidebar: rgba(241, 245, 249, 0.7);
+    --bg-input: #ffffff;
+    --bg-pill: #e2e8f0;
+    --bg-pill-active: #ffffff;
+    
+    --border-color: rgba(0, 0, 0, 0.08);
+    --border-color-focus: rgba(99, 102, 241, 0.6);
+    
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    
+    --accent-gradient: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
+    --accent-color: #7c3aed;
+    --accent-secondary: #2563eb;
+    --accent-glow: rgba(124, 58, 237, 0.08);
+    
+    --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+    --card-shadow-hover: 0 20px 40px rgba(124, 58, 237, 0.08);
+    
+    --math-box-bg: #f1f5f9;
+    --calculator-result-bg: rgba(124, 58, 237, 0.05);
+}
+
+/* ================= 2. 全局基础排版 ================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-primary);
+    background-color: var(--bg-body);
+    background-image: var(--bg-app);
+    background-attachment: fixed;
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+    transition: background-color var(--transition-normal), color var(--transition-normal);
+    line-height: 1.6;
+}
+
+/* 隐藏滚动条但保留滚动 */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* ================= 3. 头部导航栏 (Glassmorphic) ================= */
+.app-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background: var(--bg-header);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    z-index: 1000;
+    transition: background var(--transition-normal), border var(--transition-normal);
+}
+
+.header-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo-text {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+.logo-text span {
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* 全局搜索框 */
+.search-container {
+    flex: 0 1 420px;
+}
+
+.search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-wrapper input {
+    width: 100%;
+    height: 40px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 0 40px 0 44px;
+    font-family: var(--font-primary);
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: all var(--transition-normal);
+}
+
+.search-wrapper input:focus {
+    outline: none;
+    border-color: var(--border-color-focus);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.search-icon {
+    position: absolute;
+    left: 16px;
+    color: var(--text-secondary);
+    pointer-events: none;
+}
+
+.clear-search {
+    position: absolute;
+    right: 16px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    border-radius: 50%;
+}
+.clear-search:hover {
+    background: var(--bg-pill);
+    color: var(--text-primary);
+}
+
+/* 头部操作栏 */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.view-switcher {
+    display: flex;
+    background: var(--bg-pill);
+    padding: 4px;
+    border-radius: 24px;
+    border: 1px solid var(--border-color);
+}
+
+.switch-btn {
+    background: transparent;
+    border: none;
+    font-family: var(--font-primary);
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--text-secondary);
+    padding: 6px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all var(--transition-fast);
+}
+
+.switch-btn:hover {
+    color: var(--text-primary);
+}
+
+.switch-btn.active {
+    background: var(--bg-pill-active);
+    color: var(--text-primary);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.action-icon-btn {
+    background: var(--bg-pill);
+    border: 1px solid var(--border-color);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.action-icon-btn:hover {
+    background: var(--bg-pill-active);
+    transform: translateY(-2px);
+}
+
+/* 控制深色模式的日/月图标交替显示 */
+.theme-dark .sun-icon { display: block; }
+.theme-dark .moon-icon { display: none; }
+.theme-light .sun-icon { display: none; }
+.theme-light .moon-icon { display: block; }
+
+/* ================= 4. 双栏布局结构 ================= */
+.app-container {
+    display: flex;
+    margin-top: 70px;
+    min-height: calc(100vh - 70px);
+}
+
+/* 侧边栏 */
+.app-sidebar {
+    width: 280px;
+    background: var(--bg-sidebar);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-right: 1px solid var(--border-color);
+    padding: 24px;
+    position: fixed;
+    top: 70px;
+    bottom: 0;
+    left: 0;
+    overflow-y: auto;
+    z-index: 90;
+    transition: background var(--transition-normal), border var(--transition-normal);
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.nav-section-title {
+    font-family: var(--font-heading);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.nav-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 30px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all var(--transition-fast);
+}
+
+.nav-item:hover {
+    background: var(--bg-pill);
+    color: var(--text-primary);
+}
+
+.nav-item.active {
+    background: var(--bg-pill-active);
+    color: var(--text-primary);
+    font-weight: 600;
+    border-left: 3px solid var(--accent-color);
+}
+
+.nav-icon {
+    font-size: 16px;
+    margin-right: 10px;
+}
+
+.badge {
+    background: var(--bg-pill);
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    color: var(--text-muted);
+}
+
+.nav-item.active .badge {
+    background: var(--accent-color);
+    color: white;
+}
+
+/* 侧边栏打印盒 */
+.print-quick-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    margin-top: auto;
+}
+
+.quick-card-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.quick-card-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 14px;
+    line-height: 1.4;
+}
+
+.print-mode-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    gap: 8px;
+}
+
+.radio-label input {
+    display: none;
+}
+
+.custom-radio {
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid var(--text-muted);
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+    transition: all var(--transition-fast);
+}
+
+.radio-label input:checked + .custom-radio {
+    border-color: var(--accent-color);
+}
+
+.radio-label input:checked + .custom-radio::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--accent-gradient);
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.premium-btn {
+    width: 100%;
+    background: var(--accent-gradient);
+    border: none;
+    color: white;
+    font-family: var(--font-primary);
+    font-weight: 600;
+    font-size: 13px;
+    padding: 10px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);
+    transition: all var(--transition-fast);
+}
+
+.premium-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(168, 85, 247, 0.4);
+}
+
+.premium-btn.primary {
+    background: var(--accent-gradient);
+}
+
+/* 主内容区 */
+.app-main-content {
+    flex: 1;
+    margin-left: 280px;
+    padding: 32px;
+    min-width: 0;
+}
+
+/* SPA Section Toggler */
+.content-section {
+    display: none;
+}
+
+.content-section.active {
+    display: block;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+}
+
+.section-title {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+}
+
+.section-subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.card-count-indicator {
+    font-size: 12px;
+    color: var(--text-muted);
+    background: var(--bg-pill);
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+/* ================= 5. 交互式物理公式卡片流 ================= */
+.formulas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 24px;
+}
+
+.formula-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--card-shadow);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal), border var(--transition-normal), background var(--transition-normal);
+}
+
+.formula-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--card-shadow-hover);
+    border-color: var(--border-color-focus);
+    background: var(--bg-card-hover);
+}
+
+/* 卡片头部 */
+.card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.card-title {
+    font-family: var(--font-heading);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.category-tag {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+}
+
+.tag-mechanics { background: rgba(59, 130, 246, 0.12); color: #60a5fa; border: 0.5px solid rgba(59, 130, 246, 0.3); }
+.tag-electricity { background: rgba(234, 179, 8, 0.12); color: #facc15; border: 0.5px solid rgba(234, 179, 8, 0.3); }
+.tag-thermodynamics { background: rgba(239, 68, 68, 0.12); color: #f87171; border: 0.5px solid rgba(239, 68, 68, 0.3); }
+.tag-acoustics-optics { background: rgba(168, 85, 247, 0.12); color: #c084fc; border: 0.5px solid rgba(168, 85, 247, 0.3); }
+
+/* LaTeX 公式展示区 */
+.formula-display-box {
+    background: var(--math-box-bg);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    border-bottom: 1px solid var(--border-color);
+    min-height: 70px;
+}
+
+/* 卡片内部 Tab 导航 */
+.card-tabs-nav {
+    display: flex;
+    background: var(--bg-pill);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tab-nav-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    font-family: var(--font-primary);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    padding: 10px 0;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.tab-nav-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255,255,255,0.02);
+}
+
+.tab-nav-btn.active {
+    color: var(--accent-color);
+    font-weight: 600;
+    background: var(--bg-card);
+    box-shadow: inset 0 -2px 0 var(--accent-color);
+}
+
+/* Tab 视图内容区 */
+.card-tab-content {
+    padding: 18px 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+    animation: fadeIn var(--transition-normal);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Tab 1: 定义与变量列表 */
+.definition-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 14px;
+}
+
+.variables-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.variables-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.variable-row {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    border-bottom: 0.5px dashed var(--border-color);
+    padding-bottom: 6px;
+}
+.variable-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.var-symbol {
+    flex: 0 0 45px;
+    font-weight: 600;
+    color: var(--accent-color);
+    font-family: var(--font-heading);
+}
+
+.var-name {
+    flex: 1;
+    color: var(--text-primary);
+}
+
+.var-unit {
+    color: var(--text-muted);
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px;
+    background: var(--bg-pill);
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+
+/* Tab 2: 公式变形列表 */
+.transformations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.trans-item {
+    background: var(--math-box-bg);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.trans-eq {
+    font-size: 16px;
+}
+
+.trans-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: right;
+}
+
+/* Tab 3: 单位换算与交互计算器 */
+.calc-inputs-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.calc-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.calc-input-row .symbol {
+    flex: 0 0 35px;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--accent-color);
+    font-family: var(--font-heading);
+}
+
+.calc-input-row input {
+    flex: 1;
+    height: 34px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 0 10px;
+    font-family: 'Outfit', var(--font-primary);
+    color: var(--text-primary);
+    font-size: 13px;
+    transition: all var(--transition-fast);
+}
+
+.calc-input-row input:focus {
+    outline: none;
+    border-color: var(--border-color-focus);
+}
+
+.calc-input-row select {
+    flex: 0 0 100px;
+    height: 34px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    padding: 0 6px;
+    font-size: 12px;
+    font-family: var(--font-primary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.calc-input-row select:focus {
+    outline: none;
+    border-color: var(--border-color-focus);
+}
+
+.calc-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.calc-btn {
+    flex: 2;
+    height: 34px;
+    background: var(--accent-gradient);
+    border: none;
+    color: white;
+    font-weight: 600;
+    font-size: 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all var(--transition-fast);
+}
+.calc-btn:hover {
+    opacity: 0.9;
+}
+
+.reset-btn {
+    flex: 1;
+    height: 34px;
+    background: var(--bg-pill);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+.reset-btn:hover {
+    background: var(--bg-pill-active);
+}
+
+.calc-result-box {
+    background: var(--calculator-result-bg);
+    border: 1px dashed var(--border-color-focus);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.calc-result-box.active {
+    display: flex;
+    animation: fadeIn var(--transition-normal);
+}
+
+.result-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent-color);
+    text-transform: uppercase;
+}
+
+.result-step {
+    font-size: 13px;
+    word-break: break-all;
+}
+
+/* Tab 4: 典型例题 */
+.example-box {
+    display: flex;
+    flex-direction: column;
+}
+
+.example-question {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+.view-solution-btn {
+    background: var(--bg-pill);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all var(--transition-fast);
+}
+
+.view-solution-btn:hover {
+    background: var(--bg-pill-active);
+    color: var(--text-primary);
+}
+
+.solution-container {
+    display: none;
+    margin-top: 14px;
+    background: var(--math-box-bg);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    border: 1px solid var(--border-color);
+}
+
+.solution-container.active {
+    display: block;
+    animation: fadeIn var(--transition-normal);
+}
+
+.solution-steps {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+/* ================= 6. 专项习题集排版 (模拟试卷系统) ================= */
+.practice-control-header {
+    background: var(--bg-card);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.title-wrap {
+    display: flex;
+    flex-direction: column;
+}
+
+.practice-action-bar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.print-mode-panel {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.panel-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.toggle-group {
+    background: var(--bg-pill);
+    padding: 3px;
+    border-radius: 8px;
+    display: flex;
+    border: 1px solid var(--border-color);
+}
+
+.toggle-option {
+    background: transparent;
+    border: none;
+    font-family: var(--font-primary);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.toggle-option.active {
+    background: var(--bg-pill-active);
+    color: var(--text-primary);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+/* 试卷容器 A4 标准视觉 */
+.exam-sheet-container {
+    background: var(--bg-card);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--card-shadow);
+    padding: 40px 50px;
+    transition: all var(--transition-normal);
+}
+
+/* 试卷头部块 */
+.exam-header-block {
+    text-align: center;
+    border-bottom: 2px solid var(--text-primary);
+    padding-bottom: 20px;
+    margin-bottom: 28px;
+}
+
+.exam-main-title {
+    font-family: var(--font-heading);
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+}
+
+.exam-meta-info {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+
+.exam-meta-info strong {
+    color: var(--text-primary);
+}
+
+.student-info-fields {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 16px 24px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+/* 题目流 */
+.exercises-list {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.question-card {
+    border-bottom: 1px dashed var(--border-color);
+    padding-bottom: 24px;
+}
+
+.question-card:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.question-title-row {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.7;
+    margin-bottom: 14px;
+}
+
+.score-badge {
+    color: var(--accent-color);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+}
+
+/* 答题留白区域 (仅在学生模式下显示) */
+.student-space {
+    display: none;
+    margin-top: 14px;
+}
+
+.student-space.active {
+    display: block;
+}
+
+/* 计算题答题留白框 */
+.calculation-space {
+    border: 1px dashed var(--text-muted);
+    border-radius: var(--radius-md);
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 12px;
+    background: rgba(255, 255, 255, 0.01);
+}
+
+/* 网页上习题的答案解析框 */
+.exam-solution-block {
+    display: none;
+    margin-top: 16px;
+    background: var(--math-box-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+}
+
+.exam-solution-block.active {
+    display: block;
+    animation: fadeIn var(--transition-normal);
+}
+
+.ans-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent-color);
+    margin-bottom: 8px;
+}
+
+.ans-text {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+/* ================= 7. 悬浮/覆盖层与其他视觉元素 ================= */
+.floating-print-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent-gradient);
+    border: none;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(168, 85, 247, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    transition: all var(--transition-fast);
+}
+
+.floating-print-btn:hover {
+    transform: scale(1.08) translateY(-2px);
+    box-shadow: 0 8px 24px rgba(168, 85, 247, 0.5);
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(10, 15, 26, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    transition: opacity var(--transition-normal);
+}
+
+.loading-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px dashed var(--accent-color);
+    border-top: 4px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* ================= 8. 响应式布局媒体查询 ================= */
+@media (max-width: 1024px) {
+    .app-sidebar {
+        display: none; /* 移动端隐藏侧边栏，可通过按钮或后续交互展开 */
+    }
+    .app-main-content {
+        margin-left: 0;
+        padding: 20px;
+    }
+    .formulas-grid {
+        grid-template-columns: 1fr;
+    }
+    .search-container {
+        flex: 0 1 200px;
+    }
+}
+
+@media (max-width: 768px) {
+    .app-header {
+        padding: 0 12px;
+        height: 60px;
+    }
+    .app-container {
+        margin-top: 60px;
+    }
+    .logo-text {
+        font-size: 16px;
+    }
+    .search-container {
+        display: none; /* 移动端隐藏搜索栏以节省空间 */
+    }
+    .view-switcher {
+        padding: 2px;
+    }
+    .switch-btn {
+        padding: 4px 10px;
+        font-size: 12px;
+    }
+    .floating-print-btn {
+        bottom: 20px;
+        right: 20px;
+        width: 48px;
+        height: 48px;
+    }
+    .practice-control-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+    .practice-action-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .print-mode-panel {
+        justify-content: space-between;
+    }
+    .exam-sheet-container {
+        padding: 20px;
+    }
+    .exam-main-title {
+        font-size: 20px;
+    }
+}
+
+/* ================= 9. @media print 打印机与 A4 PDF 导出排版样式 ================= */
+@media print {
+    /* 1. 基础重置：纯白底色、纯黑文字，去除阴影 */
+    body {
+        background: #ffffff !important;
+        background-image: none !important;
+        color: #000000 !important;
+        font-size: 10.5pt !important;
+        line-height: 1.5 !important;
+    }
+    
+    /* 2. 隐藏所有的非打印组件 */
+    .no-print,
+    header,
+    aside,
+    .card-tabs-nav,
+    .calc-actions,
+    .calc-inputs-container,
+    .view-solution-btn,
+    .clear-search,
+    .floating-print-btn,
+    .loading-overlay {
+        display: none !important;
+    }
+    
+    /* 3. 伸缩主内容容器，消除外边距 */
+    .app-container {
+        margin-top: 0 !important;
+        display: block !important;
+    }
+    
+    .app-main-content {
+        margin-left: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+    }
+    
+    /* 4. 纸张页面及页边距设置 (标准 A4 纵向) */
+    @page {
+        size: A4 portrait;
+        margin: 18mm 15mm 20mm 15mm;
+    }
+    
+    /* 5. 公式手册打印视图优化 */
+    #handbookSection.active {
+        display: block !important;
+    }
+    
+    /* 打印公式手册时，将卡片网格重置为单列排列 */
+    .formulas-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 20px !important;
+    }
+    
+    .formula-card {
+        background: #ffffff !important;
+        border: 1px solid #000000 !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important; /* 避免在卡片中间被截断跨页 */
+        transform: none !important;
+        border-radius: 8px !important;
+        display: block !important;
+    }
+    
+    .card-header {
+        border-bottom: 1px solid #000000 !important;
+        padding: 10px 15px !important;
+    }
+    
+    .card-title {
+        color: #000000 !important;
+        font-size: 14pt !important;
+    }
+    
+    .category-tag {
+        border: 1px solid #000000 !important;
+        color: #000000 !important;
+        background: transparent !important;
+    }
+    
+    .formula-display-box {
+        background: #f8f9fa !important;
+        border-bottom: 1px solid #000000 !important;
+        padding: 15px !important;
+        font-size: 20px !important;
+    }
+    
+    /* 在打印视图下，直接展示卡片的全部有用 Tab 内容，不用标签按钮切换！ */
+    .card-tab-content {
+        padding: 12px 15px !important;
+        display: block !important;
+    }
+    
+    /* 显示必要的 Tab */
+    .tab-pane {
+        display: block !important;
+        margin-bottom: 16px !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+    
+    /* 隐藏计算器 Tab 的输入框 */
+    .tab-pane:nth-child(3) {
+        display: none !important; /* 隐藏计算器界面，计算器无打印价值 */
+    }
+    
+    /* 给打印排版添加标签前缀，显得像公式百科 */
+    .tab-pane:nth-child(1)::before {
+        content: "【核心定义与物理量】";
+        font-weight: bold;
+        font-size: 11pt;
+        display: block;
+        margin-bottom: 6px;
+    }
+
+    .tab-pane:nth-child(2)::before {
+        content: "【公式变形推导】";
+        font-weight: bold;
+        font-size: 11pt;
+        display: block;
+        margin-bottom: 6px;
+    }
+    
+    .tab-pane:nth-child(4)::before {
+        content: "【典型例题解析】";
+        font-weight: bold;
+        font-size: 11pt;
+        display: block;
+        margin-bottom: 6px;
+    }
+
+    .definition-text {
+        color: #000000 !important;
+        font-size: 10pt !important;
+    }
+    
+    .variable-row {
+        border-bottom: 0.5px dashed #000000 !important;
+        color: #000000 !important;
+    }
+    
+    .var-symbol {
+        color: #000000 !important;
+    }
+    
+    .var-unit {
+        border: 1.5px solid #000000 !important;
+        background: transparent !important;
+        color: #000000 !important;
+    }
+    
+    .trans-item {
+        background: #f8f9fa !important;
+        border: 0.5px solid #000000 !important;
+        color: #000000 !important;
+    }
+    
+    .example-question {
+        font-size: 10pt !important;
+    }
+    
+    .solution-container {
+        display: block !important;
+        background: #f8f9fa !important;
+        border: 0.5px solid #000000 !important;
+        padding: 10px !important;
+    }
+    
+    /* 6. 专项习题集打印视图优化 */
+    #practiceSection.active {
+        display: block !important;
+    }
+    
+    .exam-sheet-container {
+        background: #ffffff !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        width: 100% !important;
+    }
+    
+    .exam-header-block {
+        border-bottom: 3px double #000000 !important;
+        margin-bottom: 30px !important;
+    }
+    
+    .exam-main-title {
+        color: #000000 !important;
+        font-size: 20pt !important;
+    }
+    
+    .exam-meta-info,
+    .student-info-fields {
+        color: #000000 !important;
+        font-size: 10pt !important;
+    }
+    
+    .question-card {
+        page-break-inside: avoid !important; /* 避免题目中间跨页截断 */
+        border-bottom: 1.5px solid #000000 !important;
+        padding-bottom: 20px !important;
+        margin-bottom: 20px !important;
+    }
+    
+    .question-title-row {
+        font-size: 11pt !important;
+    }
+    
+    /* 在打印视图下，基于当前的“打印设置”控制解析的显示或隐藏 */
+    /* 教师版：完全渲染解析 */
+    body.print-teacher-mode .exam-solution-block {
+        display: block !important;
+        background: #f8f9fa !important;
+        border: 1px solid #000000 !important;
+        padding: 12px !important;
+        margin-top: 15px !important;
+        page-break-inside: avoid !important;
+    }
+    
+    /* 教师版：隐藏答题留白 */
+    body.print-teacher-mode .student-space {
+        display: none !important;
+    }
+    
+    /* 学生版：隐藏解析 */
+    body.print-student-mode .exam-solution-block {
+        display: none !important;
+    }
+    
+    /* 学生版：展示答题留白与线段 */
+    body.print-student-mode .student-space {
+        display: block !important;
+    }
+    
+    /* 给学生版在纸张上提供标准的做题格子/横线 */
+    body.print-student-mode .calculation-space {
+        background: transparent !important;
+        border: 1.5px dashed #000000 !important;
+        height: 180px !important;
+        color: #888888 !important;
+    }
+    
+    /* 答题线表示：如果是填空题留空，画出一条粗黑下划线 */
+    .print-fill-blank {
+        text-decoration: underline !important;
+        font-weight: bold;
+    }
+}

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>初中物理提分宝典 - 公式手册与专项突破</title>
+    <!-- Meta Descriptions for SEO -->
+    <meta name="description" content="专为中国初中生设计的物理公式手册与专项微习题平台。支持公式多维剖析、单位交互换算器、例题步骤解析以及一键导出学生打印版/教师解析版 A4 标准 PDF，是您初中物理学习与备考的终极神器。">
+    <meta name="keywords" content="初中物理, 物理公式, 物理定义, 公式变形, 单位换算, 物理习题, PDF导出, 打印排版">
+    
+    <!-- Premium Typography: Outfit & Inter for numbers/latin, Noto Sans SC for Chinese -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX CSS for beautiful math equations rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+    
+    <!-- Custom stylesheet -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Core physics data and application script (Deferred) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+    <script defer src="js/data.js"></script>
+    <script defer src="js/app.js"></script>
+</head>
+<body class="theme-dark">
+    <!-- Top Glassmorphic Navigation Bar -->
+    <header class="app-header no-print" id="appHeader">
+        <div class="header-logo">
+            <div class="logo-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="url(#logo-grad)" />
+                    <path d="M2 17L12 22L22 17" stroke="url(#logo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M2 12L12 17L22 12" stroke="url(#logo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <defs>
+                        <linearGradient id="logo-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#a855f7" />
+                            <stop offset="1" stop-color="#3b82f6" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <h1 class="logo-text">Physics<span>Hub</span></h1>
+        </div>
+        
+        <!-- Global Search Bar -->
+        <div class="search-container">
+            <div class="search-wrapper">
+                <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <input type="text" id="globalSearch" placeholder="搜索公式、定义、物理量、例题..." autocomplete="off">
+                <button class="clear-search" id="clearSearchBtn" aria-label="清除搜索">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Utility controls (Theme & Actions) -->
+        <div class="header-actions">
+            <!-- Navigation View Switcher (SPA Tabs) -->
+            <div class="view-switcher">
+                <button class="switch-btn active" id="btnShowHandbook" data-target="handbook">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    公式手册
+                </button>
+                <button class="switch-btn" id="btnShowPractice" data-target="practice">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    专项习题
+                </button>
+            </div>
+
+            <!-- Dark/Light Theme Toggle -->
+            <button class="action-icon-btn" id="themeToggleBtn" title="切换深色/浅色模式" aria-label="切换主题">
+                <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Sidebar and Content Grid -->
+    <div class="app-container">
+        <!-- Sidebar Navigation (Filters) -->
+        <aside class="app-sidebar no-print" id="appSidebar">
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">学科分支</div>
+                <ul class="nav-list" id="categoryList">
+                    <li class="nav-item active" data-category="all">
+                        <span class="nav-icon">✨</span>
+                        <span class="nav-text">全部板块</span>
+                        <span class="badge" id="badge-all">0</span>
+                    </li>
+                    <li class="nav-item" data-category="mechanics">
+                        <span class="nav-icon">⚙️</span>
+                        <span class="nav-text">力学模块</span>
+                        <span class="badge" id="badge-mechanics">0</span>
+                    </li>
+                    <li class="nav-item" data-category="electricity">
+                        <span class="nav-icon">⚡</span>
+                        <span class="nav-text">电学模块</span>
+                        <span class="badge" id="badge-electricity">0</span>
+                    </li>
+                    <li class="nav-item" data-category="thermodynamics">
+                        <span class="nav-icon">🔥</span>
+                        <span class="nav-text">热学模块</span>
+                        <span class="badge" id="badge-thermodynamics">0</span>
+                    </li>
+                    <li class="nav-item" data-category="acoustics-optics">
+                        <span class="nav-icon">🌈</span>
+                        <span class="nav-text">声学与光学</span>
+                        <span class="badge" id="badge-acoustics-optics">0</span>
+                    </li>
+                </ul>
+
+                <!-- PDF Print Quick Box -->
+                <div class="print-quick-card">
+                    <div class="quick-card-title">一键打印 / 导出 PDF</div>
+                    <p class="quick-card-desc">生成精美的 A4 物理学习手册，方便打印成实体笔记或复习资料。</p>
+                    
+                    <div class="print-mode-selector" id="generalPrintSelector">
+                        <label class="radio-label">
+                            <input type="radio" name="quickPrintMode" value="student" checked>
+                            <span class="custom-radio"></span>
+                            学生打印版 (留空作答)
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="quickPrintMode" value="teacher">
+                            <span class="custom-radio"></span>
+                            教师解析版 (含详解)
+                        </label>
+                    </div>
+
+                    <button class="premium-btn" id="sidebarExportPdfBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        导出标准 A4 PDF
+                    </button>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="app-main-content" id="appMainContent">
+            
+            <!-- SECTION 1: Formula Handbook (Tab-like View) -->
+            <section class="content-section active" id="handbookSection">
+                <div class="section-header no-print">
+                    <div class="section-title-area">
+                        <h2 class="section-title" id="currentCategoryTitle">全部公式与物理定义</h2>
+                        <p class="section-subtitle">点击公式卡片的选项卡进行变形推导、单位换算、交互式计算与典型例题自测。</p>
+                    </div>
+                    <div class="handbook-controls">
+                        <!-- Custom layout view (Grid/List) toggle -->
+                        <span class="card-count-indicator" id="visibleFormulaCount">共加载 0 个公式</span>
+                    </div>
+                </div>
+                
+                <!-- Formulas Grid Grid Grid -->
+                <div class="formulas-grid" id="formulasGrid">
+                    <!-- Cards dynamically injected by app.js -->
+                </div>
+            </section>
+
+            <!-- SECTION 2: Practice Exercises (Tab-like View) -->
+            <section class="content-section" id="practiceSection">
+                <!-- Header of Practice Area -->
+                <div class="practice-control-header no-print">
+                    <div class="title-wrap">
+                        <h2 class="section-title">初中物理专项培优习题</h2>
+                        <p class="section-subtitle">专为中国中考物理精选的填空题与计算压轴题，适合打印手写自测。</p>
+                    </div>
+                    
+                    <div class="practice-action-bar">
+                        <div class="print-mode-panel">
+                            <span class="panel-label">打印模式配置：</span>
+                            <div class="toggle-group">
+                                <button class="toggle-option active" id="printModeStudent" data-mode="student">
+                                    学生作答版 (留出答题线)
+                                </button>
+                                <button class="toggle-option" id="printModeTeacher" data-mode="teacher">
+                                    教师解析版 (含完整推导)
+                                </button>
+                            </div>
+                        </div>
+
+                        <button class="premium-btn primary" id="practiceExportPdfBtn">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            导出本卷 PDF
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Exam Sheet Layout Container -->
+                <div class="exam-sheet-container" id="examSheet">
+                    <!-- Title block visible only during print or styled premium on screen -->
+                    <div class="exam-header-block">
+                        <h1 class="exam-main-title">初中物理中考专项突破·模拟练习卷</h1>
+                        <div class="exam-meta-info">
+                            <span class="meta-item">物理板块：<strong id="examCategoryName">全部板块</strong></span>
+                            <span class="meta-item">考试时间：45分钟</span>
+                            <span class="meta-item">满分：100分</span>
+                        </div>
+                        <div class="student-info-fields">
+                            <span class="info-field">学校：___________</span>
+                            <span class="info-field">班级：___________</span>
+                            <span class="info-field">姓名：___________</span>
+                            <span class="info-field">学号：___________</span>
+                            <span class="info-field">得分：___________</span>
+                        </div>
+                    </div>
+
+                    <!-- Exercises flow -->
+                    <div class="exercises-list" id="exercisesList">
+                        <!-- Questions dynamically injected by app.js -->
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Floating action button for PDF Print (Mobile friendly) -->
+    <button class="floating-print-btn no-print" id="floatingPrintBtn" title="一键导出为 A4 PDF">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+    </button>
+
+    <!-- Global math custom error / loading indicator -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="spinner"></div>
+        <p class="loading-text">正在排版生成 PDF 矢量版面...</p>
+    </div>
+</body>
+</html>
