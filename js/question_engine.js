@@ -1258,6 +1258,523 @@ const PHYSICS_ENGINE = {
                     ]
                 };
             }
+        },
+        // ============================== 七、强化公式变形与单位换算模板 (26个追加) ==============================
+        // ------------------------------ 1. 声学与光学 (4个) ------------------------------
+        {
+            id: "optics_light_speed_unit",
+            category: "acoustics-optics",
+            type: "fill",
+            score: 10,
+            generator() {
+                return {
+                    question: `光在真空中传播速度为 $3.0 \\times 10^8\\text{ m/s}$，合___________ $\\text{km/s}$。若光从月球传到地球大约需要 $1.28\\text{ s}$，则月球到地球的距离约为___________ $\\text{km}$。`,
+                    answer: `3.0 \\times 10^5；3.84 \\times 10^5`,
+                    steps: [
+                        `1. **真空中的光速单位换算：**`,
+                        `   $c = 3.0 \\times 10^8\\text{ m/s} = 3.0 \\times 10^5\\text{ km/s}$。`,
+                        `2. **计算月球到地球的距离：**`,
+                        `   已知传播时间 $t = 1.28\\text{ s}$，光速 $c = 3.0 \\times 10^5\\text{ km/s}$。`,
+                        `   根据距离公式：$s = ct = 3.0 \\times 10^5\\text{ km/s} \\times 1.28\\text{ s} = 3.84 \\times 10^5\\text{ km}$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "sound_wave_formula_trans",
+            category: "acoustics-optics",
+            type: "fill",
+            score: 10,
+            generator() {
+                return {
+                    question: `波速公式为 $v = \\lambda f$。已知某一电磁波在真空中的传播速度为 $3.0 \\times 10^8\\text{ m/s}$，波长为 $\\lambda = 20\\text{ m}$，求频率的变形公式是 $f = $___________；代入计算所得该波的频率为___________ $\\text{MHz}$。`,
+                    answer: `\\frac{v}{\\lambda}；15`,
+                    steps: [
+                        `1. **公式变形：**`,
+                        `   根据波速公式 $v = \\lambda f$，等式两边同除以波长 $\\lambda$，得到求频率的变形公式：$f = \\frac{v}{\\lambda}$。`,
+                        `2. **计算频率：**`,
+                        `   代入数据：$f = \\frac{3.0 \\times 10^8\\text{ m/s}}{20\\text{ m}} = 1.5 \\times 10^7\\text{ Hz}$。`,
+                        `3. **单位换算：**`,
+                        `   $1.5 \\times 10^7\\text{ Hz} = 15\\text{ MHz}$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "sound_speed_temp_trans",
+            category: "acoustics-optics",
+            type: "fill",
+            score: 10,
+            generator() {
+                return {
+                    question: `声音在 $15\\text{ ℃}$ 空气中的传播速度为 $340\\text{ m/s}$。若人对着悬崖大喊，听到回声的时间为 $t$，求声源到悬崖单向距离的变形公式为 $s = $___________。若百米赛跑计时员听到枪声才计时，他少记的成绩（时间）计算式为 $t = \\frac{s}{v} = \\frac{100\\text{ m}}{340\\text{ m/s}} \\approx $___________ $\\text{s}$（保留两位小数）。`,
+                    answer: `\\frac{1}{2}vt；0.29`,
+                    steps: [
+                        `1. **回声单向距离公式变形：**`,
+                        `   声音往返的总路程为 $2s = vt$，因此声源到悬崖的单向距离公式为：$s = \\frac{1}{2}vt$（或 $\\frac{vt}{2}$）。`,
+                        `2. **计算计时误差：**`,
+                        `   听到枪声才计时，声音传播 $100\\text{ m}$ 消耗的时间即为误差时间。`,
+                        `   代入计算：$t = \\frac{100}{340} \\approx 0.294\\text{ s}$，保留两位小数为 $0.29\\text{ s}$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "acoustics_frequency_unit",
+            category: "acoustics-optics",
+            type: "fill",
+            score: 10,
+            generator() {
+                return {
+                    question: `人耳能听到的声音频率范围是 $20\\text{ Hz}$ 到 $20000\\text{ Hz}$。其中上限频率 $20000\\text{ Hz}$ 合___________ $\\text{kHz}$。某蝙蝠发出的超声波频率为 $50\\text{ kHz}$，合___________ $\\text{Hz}$。`,
+                    answer: `20；50000`,
+                    steps: [
+                        `1. **赫兹与千赫兹换算进率：** $1\\text{ kHz} = 1000\\text{ Hz}$。`,
+                        `2. **频率单位换算：**`,
+                        `   $20000\\text{ Hz} = \\frac{20000}{1000}\\text{ kHz} = 20\\text{ kHz}$。`,
+                        `   $50\\text{ kHz} = 50 \\times 1000\\text{ Hz} = 50000\\text{ Hz}$。`
+                    ]
+                };
+            }
+        },
+        // ------------------------------ 2. 力学模块 (5个) ------------------------------
+        {
+            id: "mech_speed_unit_convert",
+            category: "mechanics",
+            type: "fill",
+            score: 10,
+            generator() {
+                const ms = PHYSICS_ENGINE.randomPick([10, 15, 20, 25]);
+                const kmh = ms * 3.6;
+                const kmh_input = PHYSICS_ENGINE.randomPick([36, 54, 72, 90, 108]);
+                const ms_output = (kmh_input / 3.6).toFixed(0);
+                return {
+                    question: `速度单位双向换算：$${ms}\\text{ m/s} = $___________ $\\text{km/h}$；$${kmh_input}\\text{ km/h} = $___________ $\\text{m/s}$。`,
+                    answer: `${kmh}；${ms_output}`,
+                    steps: [
+                        `1. **从 m/s 换算为 km/h（乘以 3.6）：**`,
+                        `   $${ms}\\text{ m/s} = ${ms} \\times 3.6\\text{ km/h} = ${kmh}\\text{ km/h}$。`,
+                        `2. **从 km/h 换算为 m/s（除以 3.6）：**`,
+                        `   $${kmh_input}\\text{ km/h} = \\frac{${kmh_input}}{3.6}\\text{ m/s} = ${ms_output}\\text{ m/s}$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "mech_density_unit_convert",
+            category: "mechanics",
+            type: "fill",
+            score: 10,
+            generator() {
+                const metals = [
+                    { name: "铝", gcm3: 2.7, kgm3: 2700 },
+                    { name: "铁", gcm3: 7.9, kgm3: 7900 },
+                    { name: "铜", gcm3: 8.9, kgm3: 8900 }
+                ];
+                const metal = PHYSICS_ENGINE.randomPick(metals);
+                return {
+                    question: `水的密度为 $1.0 \\times 10^3\\text{ kg/m}^3$，合___________ $\\text{g/cm}^3$；实心${metal.name}块的密度为 $${metal.gcm3}\\text{ g/cm}^3$，合___________ $\\text{kg/m}^3$。`,
+                    answer: `1；${metal.kgm3}`,
+                    steps: [
+                        `1. **密度单位换算进率：** $1\\text{ g/cm}^3 = 1.0 \\times 10^3\\text{ kg/m}^3$。`,
+                        `2. **水的密度换算：**`,
+                        `   $1.0 \\times 10^3\\text{ kg/m}^3 = 1\\text{ g/cm}^3$。`,
+                        `3. **金属${metal.name}的密度换算：**`,
+                        `   $${metal.gcm3}\\text{ g/cm}^3 = ${metal.gcm3} \\times 10^3\\text{ kg/m}^3 = ${metal.kgm3}\\text{ kg/m}^3$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "mech_volume_unit_convert",
+            category: "mechanics",
+            type: "fill",
+            score: 10,
+            generator() {
+                const dm3 = PHYSICS_ENGINE.randomPick([10, 20, 50]);
+                const m3 = (dm3 / 1000).toFixed(3);
+                const cm3 = dm3 * 1000;
+                const cm2 = PHYSICS_ENGINE.randomPick([50, 100, 200]);
+                const m2 = (cm2 / 10000).toFixed(4).replace(/\.?0+$/, "");
+                return {
+                    question: `单位体积与面积换算：$${dm3}\\text{ dm}^3 = $___________ $\\text{m}^3 = $___________ $\\text{cm}^3$。物体与桌面的受力面积为 $${cm2}\\text{ cm}^2 = $___________ $\\text{m}^2$。`,
+                    answer: `${m3}；${cm3}；${m2}`,
+                    steps: [
+                        `1. **体积单位换算：** $1\\text{ m}^3 = 1000\\text{ dm}^3 = 10^6\\text{ cm}^3$。`,
+                        `   $${dm3}\\text{ dm}^3 = \\frac{${dm3}}{1000}\\text{ m}^3 = ${m3}\\text{ m}^3$。`,
+                        `   $${dm3}\\text{ dm}^3 = ${dm3} \\times 1000\\text{ cm}^3 = ${cm3}\\text{ cm}^3$。`,
+                        `2. **面积单位换算：** $1\\text{ m}^2 = 10000\\text{ cm}^2$。`,
+                        `   $${cm2}\\text{ cm}^2 = \\frac{${cm2}}{10000}\\text{ m}^2 = ${m2}\\text{ m}^2$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "mech_formula_trans_density",
+            category: "mechanics",
+            type: "fill",
+            score: 10,
+            generator() {
+                return {
+                    question: `公式基本变形：已知密度公式 $\\rho = \\frac{m}{V}$，其求质量的变形公式为 $m = $___________，求体积的变形公式为 $V = $___________；已知重力公式 $G = mg$，若已知物体的重力 $G$，求质量的变形公式为 $m = $___________。`,
+                    answer: `\\rho V；\\frac{m}{\\rho}；\\frac{G}{g}`,
+                    steps: [
+                        `1. **密度公式变形：**`,
+                        `   由 $\\rho = \\frac{m}{V}$ 等式两边同乘以 $V$，得求质量公式: $m = \\rho V$。`,
+                        `   等式两边同乘以 $V$ 再同除以 $\\rho$，得求体积公式: $V = \\frac{m}{\\rho}$。`,
+                        `2. **重力公式变形：**`,
+                        `   由 $G = mg$ 两边同除以重力常数 $g$，得求质量公式: $m = \\frac{G}{g}$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "mech_formula_trans_pressure",
+            category: "mechanics",
+            type: "fill",
+            score: 10,
+            generator() {
+                return {
+                    question: `公式变形强化：已知压强公式 $p = \\frac{F}{S}$，则求物体所受垂直压力变形公式为 $F = $___________；已知液体压强公式 $p = \\rho g h$，求物体在液体中深度的变形公式为 $h = $___________；已知阿基米德浮力公式 $F_{浮} = \\rho_{液} g V_{排}$，求排开液体体积的变形公式为 $V_{排} = $___________。`,
+                    answer: `pS；\\frac{p}{\\rho g}；\\frac{F_{浮}}{\\rho_{液} g}`,
+                    steps: [
+                        `1. **压强公式变形：** $p = \\frac{F}{S} \\implies F = pS$。`,
+                        `2. **液体压强公式变形：** $p = \\rho g h \\implies h = \\frac{p}{\\rho g}$。`,
+                        `3. **阿基米德原理变形：** $F_{浮} = \\rho_{液} g V_{排} \\implies V_{排} = \\frac{F_{浮}}{\\rho_{液} g}$。`
+                    ]
+                };
+            }
+        },
+        // ------------------------------ 3. 电学模块 (5个) ------------------------------
+        {
+            id: "elec_energy_unit_convert",
+            category: "electricity",
+            type: "fill",
+            score: 10,
+            generator() {
+                const kwh = PHYSICS_ENGINE.randomPick([1, 1.5, 2, 2.5]);
+                const j = kwh * 3.6e6;
+                const j_input = PHYSICS_ENGINE.randomPick([3.6e6, 7.2e6, 1.08e7]);
+                const kwh_output = (j_input / 3.6e6).toFixed(1).replace(/\.0$/, "");
+                const j_sci = j_input.toExponential(1).replace("e+", "\\times 10^");
+                return {
+                    question: `电能与热量单位换算：家用空调单独工作消耗电能 $${kwh}\\text{ kW}\\cdot\\text{h} = $___________ $\\text{J}$；某白炽灯正常发光工作消耗电能 $${j_sci}\\text{ J} = $___________ $\\text{kW}\\cdot\\text{h}$。`,
+                    answer: `${j.toExponential(1).replace("e+", "\\times 10^")}；${kwh_output}`,
+                    steps: [
+                        `1. **度 (kW·h) 与 焦耳 (J) 换算关系：** $1\\text{ kW}\\cdot\\text{h} = 3.6 \\times 10^6\\text{ J}$。`,
+                        `2. **度换算为焦耳（乘以 $3.6 \\times 10^6$）：**`,
+                        `   $${kwh}\\text{ kW}\\cdot\\text{h} = ${kwh} \\times 3.6 \\times 10^6\\text{ J} = ${j.toExponential(1).replace("e+", "\\times 10^")}\\text{ J}$。`,
+                        `3. **焦耳换算为度（除以 $3.6 \\times 10^6$）：**`,
+                        `   $${j_sci}\\text{ J} = \\frac{${j_input}}{3.6 \\times 10^6}\\text{ kW}\\cdot\\text{h} = ${kwh_output}\\text{ kW}\\cdot\\text{h}$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "elec_ohms_formula_trans",
+            category: "electricity",
+            type: "fill",
+            score: 10,
+            generator() {
+                return {
+                    question: `部分电路欧姆定律公式为 $I = \\frac{U}{R}$。若想求得导体的两端电压，其变形公式是 $U = $___________；若求导体的电阻，其变形公式是 $R = $___________。如果加在导体两端的电压为零，导体的电阻值将___________（选填“变为零”或“保持不变”）。`,
+                    answer: `IR；\\frac{U}{I}；保持不变`,
+                    steps: [
+                        `1. **部分电路欧姆定律变形：**`,
+                        `   由 $I = \\frac{U}{R}$ 得，求电压: $U = IR$。`,
+                        `   求电阻: $R = \\frac{U}{I}$。`,
+                        `2. **物理分析：**`,
+                        `   电阻是导体本身的一种基本物理属性，阻值大小只与材料、长度、横截面积及温度有关，与是否加电压、通过电流的大小无关。因此电压为零时阻值**保持不变**。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "elec_power_formula_trans",
+            category: "electricity",
+            type: "fill",
+            score: 10,
+            generator() {
+                return {
+                    question: `电功率定义式为 $P = \\frac{W}{t}$，则电流做功总量的计算变形公式为 $W = $___________；已知电功率普适公式为 $P = UI$，结合欧姆定律变形，在**纯电阻电路**中，电功率的计算公式还有 $P = I^2R$ 和 $P = $___________。`,
+                    answer: `Pt；\\frac{U^2}{R}`,
+                    steps: [
+                        `1. **电功率定义式变形：** $P = \\frac{W}{t} \\implies W = Pt$。`,
+                        `2. **纯电阻电路电功率变形：**`,
+                        `   结合 $U = IR$ 代入 $P = UI$，得: $P = (IR) \\times I = I^2R$。`,
+                        `   结合 $I = \\frac{U}{R}$ 代入 $P = UI$，得: $P = U \\times \\frac{U}{R} = \\frac{U^2}{R}$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "elec_rated_formula_trans",
+            category: "electricity",
+            type: "fill",
+            score: 10,
+            generator() {
+                const P = PHYSICS_ENGINE.randomPick([40, 100, 200]);
+                return {
+                    question: `用电器铭牌计算：已知某灯泡额定电压为 $U$，额定功率为 $P$（如标有“$220\\text{V } ${P}\\text{W}$”字样）。求其正常工作时电阻的变形表达式为 $R = $___________；求其额定电流的变形表达式为 $I = $___________。`,
+                    answer: `\\frac{U^2}{P}；\\frac{P}{U}`,
+                    steps: [
+                        `1. **求解额定电阻表达式：**`,
+                        `   用电器正常工作时处于额定状态。根据纯电阻公式 $P = \\frac{U^2}{R}$ 变形得: $R = \\frac{U^2}{P}$。`,
+                        `2. **求解额定电流表达式：**`,
+                        `   根据电功率公式 $P = UI$ 变形得: $I = \\frac{P}{U}$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "elec_current_res_unit",
+            category: "electricity",
+            type: "fill",
+            score: 10,
+            generator() {
+                const ma = PHYSICS_ENGINE.randomPick([200, 500, 800]);
+                const a = (ma / 1000).toFixed(1);
+                const kom = PHYSICS_ENGINE.randomPick([0.1, 0.2, 0.5]);
+                const om = (kom * 1000).toFixed(0);
+                return {
+                    question: `电磁学单位换算：通过白炽灯的电流为 $${ma}\\text{ mA} = $___________ $\\text{A}$；一根高压输电线的电阻值为 $${kom}\\text{ k}\\Omega = $___________ $\\Omega$。`,
+                    answer: `${a}；${om}`,
+                    steps: [
+                        `1. **电流单位换算：** $1\\text{ A} = 1000\\text{ mA}$。`,
+                        `   $${ma}\\text{ mA} = \\frac{${ma}}{1000}\\text{ A} = ${a}\\text{ A}$。`,
+                        `2. **电阻单位换算：** $1\\text{ k}\\Omega = 1000\\text{ }\\Omega$。`,
+                        `   $${kom}\\text{ k}\\Omega = ${kom} \\times 1000\\text{ }\\Omega = ${om}\\text{ }\\Omega$。`
+                    ]
+                };
+            }
+        },
+        // ------------------------------ 4. 热学模块 (1个高聚合模板) ------------------------------
+        {
+            id: "therm_core_formula_trans",
+            category: "thermodynamics",
+            type: "fill",
+            score: 10,
+            generator() {
+                return {
+                    question: `热学公式与单位：比热容吸热公式为 $Q_{吸} = cm\\Delta t$，其求物体比热容的变形公式是 $c = $___________；燃料完全燃烧放热公式 $Q_{放} = mq$，若已知燃料完全燃烧放出的热量与热值，其求质量的变形公式为 $m = $___________。水吸收了 $4.2 \\times 10^5\\text{ J}$ 的热量，合___________ $\\text{kJ}$。`,
+                    answer: `\\frac{Q_{吸}}{m\\Delta t}；\\frac{Q_{放}}{q}；420`,
+                    steps: [
+                        `1. **吸热公式变形：** $Q_{吸} = cm\\Delta t \\implies c = \\frac{Q_{吸}}{m\\Delta t}$。`,
+                        `2. **完全燃烧公式变形：** $Q_{放} = mq \\implies m = \\frac{Q_{放}}{q}$。`,
+                        `3. **热量单位换算：** $1\\text{ kJ} = 1000\\text{ J}$。`,
+                        `   $4.2 \\times 10^5\\text{ J} = 420000\\text{ J} = \\frac{420000}{1000}\\text{ kJ} = 420\\text{ kJ}$。`
+                    ]
+                };
+            }
+        },
+        // ------------------------------ 5. 数学：数与式 (3个) ------------------------------
+        {
+            id: "math_formula_trans_perfect_sq",
+            category: "num-exp",
+            type: "fill",
+            score: 10,
+            generator() {
+                return {
+                    question: `完全平方公式基本变形：已知两数和与积，其求两数的平方和公式为 $a^2 + b^2 = (a+b)^2 - $___________；已知两数差与积，其求平方和变形公式为 $a^2 + b^2 = (a-b)^2 + $___________。`,
+                    answer: `2ab；2ab`,
+                    steps: [
+                        `1. **和的完全平方展开：** $(a+b)^2 = a^2 + 2ab + b^2 \\implies a^2+b^2 = (a+b)^2 - 2ab$。`,
+                        `2. **差的完全平方展开：** $(a-b)^2 = a^2 - 2ab + b^2 \\implies a^2+b^2 = (a-b)^2 + 2ab$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "math_formula_trans_perfect_sq_two",
+            category: "num-exp",
+            type: "fill",
+            score: 10,
+            generator() {
+                return {
+                    question: `代数恒等变形：已知和与差，求两数乘积 $ab$ 的变形表达式为 $ab = \\frac{(a+b)^2 - (a-b)^2}{}$___________；平方差的乘法公式为 $(a+b)(a-b) = $___________。`,
+                    answer: `4；a^2 - b^2`,
+                    steps: [
+                        `1. **求解积的恒等式：**`,
+                        `   展开：$(a+b)^2 - (a-b)^2 = (a^2+2ab+b^2) - (a^2-2ab+b^2) = 4ab$。`,
+                        `   移项除以 4，得: $ab = \\frac{(a+b)^2 - (a-b)^2}{4}$。`,
+                        `2. **平方差公式：** $(a+b)(a-b) = a^2 - b^2$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "math_unit_convert_area",
+            category: "num-exp",
+            type: "fill",
+            score: 10,
+            generator() {
+                const hc = PHYSICS_ENGINE.randomPick([0.5, 0.8, 1.2]);
+                const m2 = hc * 10000;
+                const dm = PHYSICS_ENGINE.randomPick([2, 4, 6]);
+                const cm = dm * 10;
+                const cm2 = PHYSICS_ENGINE.randomPick([150, 200, 300]);
+                const dm2 = (cm2 / 100).toFixed(2).replace(/\.?0+$/, "");
+                return {
+                    question: `几何与长度换算：中考体育测试某操场占地面积为 $${hc}\\text{ 公顷} = $___________ $\\text{m}^2$；数学作图题中，线段长度 $${dm}\\text{ dm} = $___________ $\\text{cm}$，图形面积 $${cm2}\\text{ cm}^2 = $___________ $\\text{dm}^2$。`,
+                    answer: `${m2}；${cm}；${dm2}`,
+                    steps: [
+                        `1. **公顷与平方米换算（$1\\text{ 公顷} = 10000\\text{ m}^2$）：**`,
+                        `   $${hc}\\text{ 公顷} = ${hc} \\times 10000\\text{ m}^2 = ${m2}\\text{ m}^2$。`,
+                        `2. **长度换算（$1\\text{ dm} = 10\\text{ cm}$）：**`,
+                        `   $${dm}\\text{ dm} = ${dm} \\times 10\\text{ cm} = ${cm}\\text{ cm}$。`,
+                        `3. **平方分米与平方厘米换算（$1\\text{ dm}^2 = 100\\text{ cm}^2$）：**`,
+                        `   $${cm2}\\text{ cm}^2 = \\frac{${cm2}}{100}\\text{ dm}^2 = ${dm2}\\text{ dm}^2$。`
+                    ]
+                };
+            }
+        },
+        // ------------------------------ 6. 数学：方程与函数 (3个) ------------------------------
+        {
+            id: "math_formula_trans_quadratic",
+            category: "eq-func",
+            type: "fill",
+            score: 10,
+            generator() {
+                return {
+                    question: `方程求根公式：一元二次方程 $ax^2 + bx + c = 0\\ (a \\neq 0)$ 的根的判别式为 $\\Delta = $___________。当 $\\Delta \\ge 0$ 时，该一元二次方程的求根公式为 $x = $___________。`,
+                    answer: `b^2 - 4ac；\\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}`,
+                    steps: [
+                        `1. **根的判别式：** 一元二次方程根的判别式为 $\\Delta = b^2 - 4ac$。`,
+                        `2. **求根公式：** 当 $\\Delta \\ge 0$ 时，方程有实数解，根据求根公式得: $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "math_formula_trans_linear_prop",
+            category: "eq-func",
+            type: "fill",
+            score: 10,
+            generator() {
+                return {
+                    question: `一次函数性质：一次函数 $y = kx + b$ 的图象经过第一、二、四象限。则一次项系数的范围是 $k$___________ $0$，常数项的范围是 $b$___________ $0$（选填“$>$”或“$<$”）。`,
+                    answer: `<；>`,
+                    steps: [
+                        `1. **分析斜率 $k$ 的符号：** 图象向右下方倾斜，函数值随自变量的增大而减小，因此 $k < 0$。`,
+                        `2. **分析截距 $b$ 的符号：** 图象与 y 轴的正半轴相交，即 $x=0$ 时 $y=b > 0$，因此常数项 $b > 0$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "math_formula_trans_vertex",
+            category: "eq-func",
+            type: "fill",
+            score: 10,
+            generator() {
+                return {
+                    question: `二次函数顶点公式：二次函数一般式为 $y = ax^2 + bx + c\\ (a \\neq 0)$，其图象的对称轴方程是直线 $x = $___________；其顶点坐标的纵坐标变形表达式为 $y_{顶} = $___________。`,
+                    answer: `-\\frac{b}{2a}；\\frac{4ac-b^2}{4a}`,
+                    steps: [
+                        `1. **二次函数对称轴方程：** 经过顶点且垂直于 x 轴的直线，方程为 $x = -\\frac{b}{2a}$。`,
+                        `2. **顶点纵坐标公式：** 对称轴横坐标代入一般式或进行配方得到: $y_{顶} = \\frac{4ac - b^2}{4a}$。`
+                    ]
+                };
+            }
+        },
+        // ------------------------------ 7. 数学：几何与图形 (3个) ------------------------------
+        {
+            id: "math_formula_trans_pythagoras",
+            category: "geom",
+            type: "fill",
+            score: 10,
+            generator() {
+                return {
+                    question: `直角三角形勾股定理：在直角三角形 $ABC$ 中，$\\angle C = 90^\\circ$，斜边为 $c$，直角边为 $a, b$。已知斜边 $c$ 与直角边 $b$，求另一条直角边 $a$ 的变形公式为 $a = $___________；若直角边 $a = 5$（原题为a，这里随机生成），若直角边 $b = 12$，斜边 $c = 13$，则直角边 $a = $___________。`,
+                    answer: `\\sqrt{c^2 - b^2}；5`,
+                    steps: [
+                        `1. **勾股定理公式变形：**`,
+                        `   根据勾股定理 $a^2 + b^2 = c^2$。`,
+                        `   移项: $a^2 = c^2 - b^2$。两边开平方: $a = \\sqrt{c^2 - b^2}$。`,
+                        `2. **代入数据求值：**`,
+                        `   $a = \\sqrt{13^2 - 12^2} = \\sqrt{169 - 144} = \\sqrt{25} = 5$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "math_formula_trans_sector",
+            category: "geom",
+            type: "fill",
+            score: 10,
+            generator() {
+                return {
+                    question: `扇形公式变形：已知扇形面积公式为 $S = \\frac{n\\pi R^2}{360}$，若已知面积 $S$ 和半径 $R$，求圆心角 $n$ 的变形公式为 $n = $___________；已知扇形弧长公式为 $l = \\frac{n\\pi R}{180}$，求半径 $R$ 的变形公式为 $R = $___________。`,
+                    answer: `\\frac{360S}{\\pi R^2}；\\frac{180l}{n\\pi}`,
+                    steps: [
+                        `1. **求圆心角变形公式：**`,
+                        `   由 $S = \\frac{n\\pi R^2}{360}$ 等式两边同乘以 360，再同除以 $\\pi R^2$，得: $n = \\frac{360S}{\\pi R^2}$。`,
+                        `2. **求半径变形公式：**`,
+                        `   由 $l = \\frac{n\\pi R}{180}$ 两边同乘以 180，再同除以 $n\\pi$，得: $R = \\frac{180l}{n\\pi}$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "math_unit_convert_vol",
+            category: "geom",
+            type: "fill",
+            score: 10,
+            generator() {
+                const m3 = PHYSICS_ENGINE.randomPick([1.2, 1.5, 2]);
+                const dm3 = m3 * 1000;
+                const l = dm3;
+                const ml = PHYSICS_ENGINE.randomPick([500, 600, 800]);
+                const cm3 = ml;
+                const l_out = (ml / 1000).toFixed(1);
+                return {
+                    question: `体积与容积换算：正方体水箱体积为 $${m3}\\text{ m}^3 = $___________ $\\text{dm}^3 = $___________ $\\text{L}$；一个水杯的容积为 $${ml}\\text{ mL} = $___________ $\\text{cm}^3 = $___________ $\\text{L}$。`,
+                    answer: `${dm3}；${l}；${cm3}；${l_out}`,
+                    steps: [
+                        `1. **体积与容积换算关系：** $1\\text{ m}^3 = 1000\\text{ dm}^3$，$1\\text{ dm}^3 = 1\\text{ L} = 1000\\text{ mL}$，$1\\text{ mL} = 1\\text{ cm}^3$。`,
+                        `2. **水箱换算：**`,
+                        `   $${m3}\\text{ m}^3 = ${m3} \\times 1000\\text{ dm}^3 = ${dm3}\\text{ dm}^3 = ${l}\\text{ L}$。`,
+                        `3. **水杯换算：**`,
+                        `   $${ml}\\text{ mL} = ${cm3}\\text{ cm}^3$。`,
+                        `   $${ml}\\text{ mL} = \\frac{${ml}}{1000}\\text{ L} = ${l_out}\\text{ L}$。`
+                    ]
+                };
+            }
+        },
+        // ------------------------------ 8. 数学：概率与统计 (2个) ------------------------------
+        {
+            id: "math_formula_trans_variance",
+            category: "stat-prob",
+            type: "fill",
+            score: 10,
+            generator() {
+                return {
+                    question: `方差定义与波动：已知一组数据 $x_1, x_2, \\dots, x_n$ 的平均数为 $\\bar{x}$，这组数据的方差公式为 $s^2 = $___________；若这组数据的方差为 $2.5$，现将这组数据中的每个数都乘以 $3$ 得到一组新数据，新数据的方差为___________。`,
+                    answer: `\\frac{1}{n}[(x_1-\\bar{x})^2+\\dots+(x_n-\\bar{x})^2]；22.5`,
+                    steps: [
+                        `1. **方差公式：** $s^2 = \\frac{1}{n} \\left[ (x_1 - \\bar{x})^2 + (x_2 - \\bar{x})^2 + \\dots + (x_n - \\bar{x})^2 \\right]$。`,
+                        `2. **方差比例缩放规律：**`,
+                        `   若数据每个数都乘以 $k$，则新数据的方差变为原方差的 $k^2$ 倍。`,
+                        `   原方差 $s^2 = 2.5$，乘以 3，新方差 $s'^2 = 3^2 \\times 2.5 = 9 \\times 2.5 = 22.5$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "math_formula_trans_mean_prop",
+            category: "stat-prob",
+            type: "fill",
+            score: 10,
+            generator() {
+                return {
+                    question: `数据平移属性：一组数据 $x_1, x_2, \\dots, x_n$ 的平均数为 $\\bar{x}$，极差为 $R$。若将每个数据都加上 $5$ 得到一组新数据，则新数据的平均数是___________；新数据的极差将___________（选填“变大”、“变小”或“不变”）。`,
+                    answer: `\\bar{x} + 5；不变`,
+                    steps: [
+                        `1. **平移对平均数的影响：** 数据中每个数都加上 $a$，平均数也随之加上 $a$。因此新平均数为 $\\bar{x} + 5$。`,
+                        `2. **平移对极差的影响：** 数据中每个数都加上相同的常数，最大值与最小值的差值保持不变，因此极差**不变**。`
+                    ]
+                };
+            }
         }
     ],
 

@@ -111,6 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
         renderFormulas();
         renderPracticeQuestions();
         bindEvents();
+        FormulaAnimator.init();
     }
 
     // ----------------------------------------------------
@@ -237,6 +238,12 @@ document.addEventListener("DOMContentLoaded", () => {
                                 </div>
                             `).join('')}
                         </div>
+                        ${['speed', 'ohms-law', 'specific-heat', 'pythagorean_theorem'].includes(f.id) ? `
+                            <button class="anim-trigger-btn" data-anim-type="trans" data-formula-id="${f.id}">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                🎬 启动公式变形推导动画
+                            </button>
+                        ` : ''}
                     </div>
                     
                     <!-- Tab 3: 单位换算与交互计算器 -->
@@ -271,6 +278,12 @@ document.addEventListener("DOMContentLoaded", () => {
                             <span class="result-title">名师解析代入步骤</span>
                             <span class="result-step"></span>
                         </div>
+                        ${['speed', 'density'].includes(f.id) ? `
+                            <button class="anim-trigger-btn" data-anim-type="unit" data-formula-id="${f.id}">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                🎬 启动单位换算推导动画
+                            </button>
+                        ` : ''}
                     </div>
                     
                     <!-- Tab 4: 典型例题 -->
@@ -546,6 +559,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             });
         }
+
+        // D. 绑定公式变形与单位换算动画触发器
+        const animTriggerBtns = card.querySelectorAll(".anim-trigger-btn");
+        animTriggerBtns.forEach(btn => {
+            btn.addEventListener("click", () => {
+                const animType = btn.getAttribute("data-anim-type");
+                const formulaId = btn.getAttribute("data-formula-id");
+                FormulaAnimator.start(animType, formulaId);
+            });
+        });
     }
 
     // ----------------------------------------------------
@@ -922,6 +945,350 @@ document.addEventListener("DOMContentLoaded", () => {
             parent.replaceChild(span, textNode);
         });
     }
+
+    // ====================================================
+    // 7.4 新增：数理动画推导实验室（Formula & Unit Animator）
+    // ====================================================
+    const FormulaAnimator = {
+        currentType: null,      // "trans" 或 "unit"
+        currentFormulaId: null,
+        currentStepIndex: 0,
+        isPlaying: false,
+        playInterval: null,
+        currentSteps: [],
+        DOM: {},
+        
+        // 5个经典公式和单位换算的步骤配置
+        animations: {
+            // 1. 速度变形动画
+            "speed_trans": [
+                {
+                    formula: "v = \\frac{s}{t}",
+                    desc: "1. 起始状态：这是速度的定义计算公式，表示路程与时间之比。"
+                },
+                {
+                    formula: "v \\times t = \\frac{s}{t} \\times t",
+                    desc: "2. 移项准备：根据等式的基本性质，等式两边同时乘以时间 $t$，等式依然成立。"
+                },
+                {
+                    formula: "v \\times t = s \\cdot \\frac{t}{t}",
+                    desc: "3. 约分化简：等式右侧分子和分母均有 $t$，我们可以将其写为相乘约简结构。"
+                },
+                {
+                    formula: "v \\times t = s \\quad \\text{(约去 } t \\text{)}",
+                    desc: "4. 约分消去：等式右侧的 $t$ 与分母上的 $t$ 互相消去，右侧化简为只剩路程 $s$（斜红线约去）。"
+                },
+                {
+                    formula: "s = vt",
+                    desc: "5. 最终公式：左右互换，即得到计算路程的最终变形公式：$s = vt$。"
+                }
+            ],
+            // 2. 速度单位换算动画
+            "speed_unit": [
+                {
+                    formula: "1\\text{ m/s}",
+                    desc: "1. 初始值：以 $1\\text{ m/s}$ 为例，我们要将其换算为以 $\\text{km/h}$ 为单位的值。"
+                },
+                {
+                    formula: "= \\frac{1\\text{ m}}{1\\text{ s}}",
+                    desc: "2. 拆解：将单位符号拆解为分子 $1\\text{ m}$ 和分母 $1\\text{ s}$，其物理意义为物体在 1 秒内通过了 1 米。"
+                },
+                {
+                    formula: "= \\frac{\\frac{1}{1000}\\text{ km}}{\\frac{1}{3600}\\text{ h}}",
+                    desc: "3. 单位变换：将分子的米换算为千米（$1\\text{ m} = \\frac{1}{1000}\\text{ km}$），分母的秒换算为小时（$1\\text{ s} = \\frac{1}{3600}\\text{ h}$）。"
+                },
+                {
+                    formula: "= \\frac{1}{1000} \\times 3600\\text{ km/h}",
+                    desc: "4. 繁分数约简：应用分数的除法运算法则，分母相除等同于乘以其倒数 $3600$。"
+                },
+                {
+                    formula: "= 3.6\\text{ km/h}",
+                    desc: "5. 最终换算：计算得出 $\\frac{3600}{1000} = 3.6$。因此，$1\\text{ m/s} = 3.6\\text{ km/h}$。换算进率为 $3.6$。"
+                }
+            ],
+            // 3. 密度单位换算动画
+            "density_unit": [
+                {
+                    formula: "1\\text{ g/cm}^3",
+                    desc: "1. 初始值：以 $1\\text{ g/cm}^3$ 为例，我们要将其换算为国际标准单位 $\\text{kg/m}^3$。"
+                },
+                {
+                    formula: "= \\frac{1\\text{ g}}{1\\text{ cm}^3}",
+                    desc: "2. 拆解：将其写成繁分数分子分母形式，表示 1 立方厘米某种物质的质量为 1 克。"
+                },
+                {
+                    formula: "= \\frac{10^{-3}\\text{ kg}}{10^{-6}\\text{ m}^3}",
+                    desc: "3. 单位变换：将分子克换算为千克（$1\\text{ g} = 10^{-3}\\text{ kg}$），分母立方厘米换算为立方米（$1\\text{ cm}^3 = 10^{-6}\\text{ m}^3$）。"
+                },
+                {
+                    formula: "= 10^{-3} \\times 10^6\\text{ kg/m}^3",
+                    desc: "4. 幂运算化简：依据底数相同幂相除的运算法则，$10^{-3} / 10^{-6} = 10^{-3 - (-6)} = 10^3$。"
+                },
+                {
+                    formula: "= 1000\\text{ kg/m}^3",
+                    desc: "5. 最终值：计算出 $10^3 = 1000$。因此，$1\\text{ g/cm}^3 = 1000\\text{ kg/m}^3$，进率为 $1000$。"
+                }
+            ],
+            // 4. 欧姆定律变形
+            "ohms-law_trans": [
+                {
+                    formula: "I = \\frac{U}{R}",
+                    desc: "1. 起始状态：这是部分电路欧姆定律基本公式，通过导体的电流与两端电压成正比，与电阻成反比。"
+                },
+                {
+                    formula: "I \\times R = \\frac{U}{R} \\times R",
+                    desc: "2. 变形要求电压：等式两边同时乘以电阻 $R$，等式平衡依然成立。"
+                },
+                {
+                    formula: "I \\times R = U \\cdot \\frac{R}{R}",
+                    desc: "3. 约分准备：等式右侧的 $R$ 与分母上的 $R$ 准备进行分子分母约简。"
+                },
+                {
+                    formula: "I \\times R = U",
+                    desc: "4. 电压公式：右侧 $R$ 约去。调换左右位置即得到求电压的变形公式：$U = IR$。"
+                },
+                {
+                    formula: "\\frac{U}{I} = \\frac{I R}{I}",
+                    desc: "5. 变形要求电阻：在 $U = IR$ 的两边同除以电流 $I$，以解出电阻 $R$。"
+                },
+                {
+                    formula: "R = \\frac{U}{I}",
+                    desc: "6. 电阻公式：右侧的电流 $I$ 约去，整理得出求电阻的最终变形公式：$R = \\frac{U}{I}$。"
+                }
+            ],
+            // 5. 比热容变形
+            "specific-heat_trans": [
+                {
+                    formula: "Q = c m \\Delta t",
+                    desc: "1. 初始状态：这是物体温度升高或降低时吸收（或放出）的热量通用计算公式。"
+                },
+                {
+                    formula: "\\frac{Q}{m \\Delta t} = \\frac{c m \\Delta t}{m \\Delta t}",
+                    desc: "2. 求比热容变形：我们在等式左右两边同时除以 $(m\\Delta t)$。"
+                },
+                {
+                    formula: "\\frac{Q}{m \\Delta t} = c \\cdot \\frac{m \\Delta t}{m \\Delta t}",
+                    desc: "3. 约分消元：等式右侧的分子 $m\\Delta t$ 与分母 $m\\Delta t$ 准备划线约去。"
+                },
+                {
+                    formula: "c = \\frac{Q}{m \\Delta t}",
+                    desc: "4. 最终比热容公式：右侧全部约去，对调位置得到求解比热容的变形公式：$c = \\frac{Q}{m\\Delta t}$。"
+                },
+                {
+                    formula: "\\Delta t = \\frac{Q}{c m}",
+                    desc: "5. 求温变变形：同理，若要求温度升高量 $\\Delta t$，两边除以 $(cm)$，即可得 $\\Delta t = \\frac{Q}{cm}$。"
+                }
+            ],
+            // 6. 数学勾股定理直角边变形
+            "pythagorean_theorem_trans": [
+                {
+                    formula: "a^2 + b^2 = c^2",
+                    desc: "1. 起始状态：在直角三角形中，已知两条直角边的平方和等于斜边的平方（勾股定理）。"
+                },
+                {
+                    formula: "a^2 = c^2 - b^2",
+                    desc: "2. 移项：若要求直角边 $a$，将 $b^2$ 移项到等式右边，正号（+）改变为负号（-）。"
+                },
+                {
+                    formula: "\\sqrt{a^2} = \\sqrt{c^2 - b^2}",
+                    desc: "3. 开方：等式两边同时开二次平方根，以消去左边的二次方。"
+                },
+                {
+                    formula: "a = \\sqrt{c^2 - b^2}",
+                    desc: "4. 最终直角边公式：左侧开方与平方互相抵消，最终得出计算直角边 $a$ 的变形公式。"
+                }
+            ]
+        },
+        
+        // 初始化 DOM 监听
+        init() {
+            this.DOM = {
+                modal: document.getElementById("animationModal"),
+                closeBtn: document.getElementById("closeAnimModalBtn"),
+                title: document.getElementById("animModalTitle"),
+                formulaBox: document.getElementById("animFormulaBox"),
+                desc: document.getElementById("animStepDesc"),
+                progressBar: document.getElementById("animProgressBar"),
+                stepIndicator: document.getElementById("animStepIndicator"),
+                prevBtn: document.getElementById("animPrevBtn"),
+                playBtn: document.getElementById("animPlayBtn"),
+                nextBtn: document.getElementById("animNextBtn"),
+                resetBtn: document.getElementById("animResetBtn")
+            };
+            
+            if (!this.DOM.modal) return;
+            
+            // 绑定播放控制事件
+            this.DOM.closeBtn.addEventListener("click", () => this.close());
+            this.DOM.prevBtn.addEventListener("click", () => this.prev());
+            this.DOM.nextBtn.addEventListener("click", () => this.next());
+            this.DOM.playBtn.addEventListener("click", () => this.togglePlay());
+            this.DOM.resetBtn.addEventListener("click", () => this.reset());
+            
+            // 点击阴影处关闭
+            this.DOM.modal.addEventListener("click", (e) => {
+                if (e.target === this.DOM.modal) this.close();
+            });
+        },
+        
+        // 启动动画
+        start(type, formulaId) {
+            const key = `${formulaId}_${type}`;
+            this.currentSteps = this.animations[key];
+            
+            if (!this.currentSteps) {
+                alert("该公式尚未录入此类型的动画步骤，敬请期待！");
+                return;
+            }
+            
+            this.currentType = type;
+            this.currentFormulaId = formulaId;
+            this.currentStepIndex = 0;
+            
+            // 更新标题
+            const names = {
+                "speed": "速度公式",
+                "density": "密度公式",
+                "ohms-law": "欧姆定律",
+                "specific-heat": "比热容热量公式",
+                "pythagorean_theorem": "直角三角形勾股定理"
+            };
+            const typeNames = {
+                "trans": "变形推导动画",
+                "unit": "单位换算动画"
+            };
+            this.DOM.title.textContent = `${names[formulaId] || "数理核心公式"} · ${typeNames[type]}`;
+            
+            // 显示 Modal 并锁死背景滚动
+            this.DOM.modal.classList.remove("hidden");
+            document.body.style.overflow = "hidden";
+            
+            this.renderStep();
+            this.resetPlaybackState();
+        },
+        
+        // 渲染当前步骤
+        renderStep() {
+            const step = this.currentSteps[this.currentStepIndex];
+            if (!step) return;
+            
+            const box = this.DOM.formulaBox;
+            box.classList.add("anim-changing");
+            
+            setTimeout(() => {
+                // KaTeX 渲染
+                // 动态构建约分线条的 HTML 包裹（这里我们可以把特定需要画线的字母外面包一层类）
+                let renderedFormula = step.formula;
+                
+                // 对速度 \frac{t}{t} 这一项进行替换以挂载斜红线
+                if (this.currentStepIndex === 2 && this.currentFormulaId === "speed") {
+                    renderedFormula = "v \\times t = s \\cdot \\frac{\\cancel{t}}{\\cancel{t}}";
+                }
+                if (this.currentStepIndex === 2 && this.currentFormulaId === "ohms-law") {
+                    renderedFormula = "I \\times R = U \\cdot \\frac{\\cancel{R}}{\\cancel{R}}";
+                }
+                if (this.currentStepIndex === 5 && this.currentFormulaId === "ohms-law") {
+                    renderedFormula = "R = \\frac{U}{\\cancel{I}} \\cdot \\cancel{I}";
+                }
+                if (this.currentStepIndex === 2 && this.currentFormulaId === "specific-heat") {
+                    renderedFormula = "\\frac{Q}{m \\Delta t} = c \\cdot \\frac{\\cancel{m} \\cancel{\\Delta t}}{\\cancel{m} \\cancel{\\Delta t}}";
+                }
+                
+                // KaTeX 本身若不支持 \cancel 宏，我们可以用普通的替代：在 steps 数组中，我们用普通的 cancel-line 代替
+                // KaTeX 其实支持 \cancel（通过引入 cHTML 结构），但为了防止报错，我们采用标准的带下划线/删除线的 KaTeX 代码，
+                // 或者在这里由 CSS 对特定的元素执行斜划线。我们用 \cancel 渲染非常普遍而且 KaTeX 支持得很好
+                katex.render(renderedFormula.replace(/\\cancel{([^}]+)}/g, "\\color{#ef4444}{\\rlap{\\slash}/}$1"), box, { throwOnError: false, displayMode: true });
+                
+                // 文字解说渲染与渐出
+                this.DOM.desc.textContent = step.desc;
+                this.DOM.desc.style.animation = "none";
+                // 强制重绘触发动效
+                this.DOM.desc.offsetHeight;
+                this.DOM.desc.style.animation = "fadeInText 0.4s ease forwards";
+                
+                box.classList.remove("anim-changing");
+            }, 150);
+            
+            // 更新步骤数字与进度条
+            const total = this.currentSteps.length;
+            this.DOM.stepIndicator.textContent = `步骤 ${this.currentStepIndex + 1} / ${total}`;
+            const pct = ((this.currentStepIndex + 1) / total) * 100;
+            this.DOM.progressBar.style.width = `${pct}%`;
+            
+            // 控制前/后按钮失效态
+            this.DOM.prevBtn.disabled = this.currentStepIndex === 0;
+            this.DOM.nextBtn.disabled = this.currentStepIndex === total - 1;
+        },
+        
+        // 播放/暂停
+        togglePlay() {
+            if (this.isPlaying) {
+                this.pause();
+            } else {
+                this.play();
+            }
+        },
+        
+        play() {
+            this.isPlaying = true;
+            this.DOM.playBtn.innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                暂停播放
+            `;
+            
+            this.playInterval = setInterval(() => {
+                if (this.currentStepIndex < this.currentSteps.length - 1) {
+                    this.currentStepIndex++;
+                    this.renderStep();
+                } else {
+                    // 循环播放
+                    this.currentStepIndex = 0;
+                    this.renderStep();
+                }
+            }, 4000); // 4秒一步，体验极度舒适
+        },
+        
+        pause() {
+            this.isPlaying = false;
+            clearInterval(this.playInterval);
+            this.DOM.playBtn.innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="play-icon"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                自动播放
+            `;
+        },
+        
+        prev() {
+            this.pause();
+            if (this.currentStepIndex > 0) {
+                this.currentStepIndex--;
+                this.renderStep();
+            }
+        },
+        
+        next() {
+            this.pause();
+            if (this.currentStepIndex < this.currentSteps.length - 1) {
+                this.currentStepIndex++;
+                this.renderStep();
+            }
+        },
+        
+        reset() {
+            this.pause();
+            this.currentStepIndex = 0;
+            this.renderStep();
+        },
+        
+        resetPlaybackState() {
+            this.pause();
+        },
+        
+        close() {
+            this.pause();
+            this.DOM.modal.classList.add("hidden");
+            document.body.style.overflow = "";
+        }
+    };
 
     // 执行初始化
     init();

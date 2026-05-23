@@ -257,5 +257,57 @@
         <div class="spinner"></div>
         <p class="loading-text">正在排版生成 PDF 矢量版面...</p>
     </div>
+
+    <!-- 7.2 新增：“数理动画推导实验室”磨砂玻璃态中央展台 Modal -->
+    <div class="animation-modal hidden no-print" id="animationModal">
+        <div class="animation-modal-content">
+            <button class="close-modal-btn" id="closeAnimModalBtn" title="关闭动画实验室">&times;</button>
+            <div class="anim-header">
+                <span class="anim-badge">🎬 数理动画推导实验室</span>
+                <h2 class="anim-modal-title" id="animModalTitle">公式变形推导</h2>
+            </div>
+            
+            <div class="anim-viewport">
+                <!-- 高奢动态背景粒子网格（背景彩光） -->
+                <div class="anim-glow-blob blob-1"></div>
+                <div class="anim-glow-blob blob-2"></div>
+                
+                <div class="anim-formula-container">
+                    <div class="anim-formula-box" id="animFormulaBox">
+                        <!-- KaTeX 动态渲染处 -->
+                    </div>
+                </div>
+                
+                <div class="anim-desc-container">
+                    <div class="anim-step-desc" id="animStepDesc">正在初始化推导步骤...</div>
+                </div>
+            </div>
+            
+            <div class="anim-progress-bar-container">
+                <div class="anim-progress-bar" id="animProgressBar"></div>
+            </div>
+            
+            <div class="anim-footer">
+                <div class="anim-step-indicator" id="animStepIndicator">步骤 1 / 4</div>
+                <div class="anim-controls">
+                    <button class="anim-control-btn" id="animPrevBtn" title="上一步">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+                        上一步
+                    </button>
+                    <button class="anim-control-btn primary-glow" id="animPlayBtn" title="自动播放">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="play-icon"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        自动播放
+                    </button>
+                    <button class="anim-control-btn" id="animNextBtn" title="下一步">
+                        下一步
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+                    </button>
+                    <button class="anim-control-btn reset-btn" id="animResetBtn" title="重置">
+                        重置
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
