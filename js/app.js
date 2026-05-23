@@ -238,7 +238,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 </div>
                             `).join('')}
                         </div>
-                        ${['speed', 'ohms-law', 'specific-heat', 'pythagorean_theorem'].includes(f.id) ? `
+                        ${['speed', 'ohms-law', 'specific-heat', 'pythagorean_theorem', 'lens-imaging'].includes(f.id) ? `
                             <button class="anim-trigger-btn" data-anim-type="trans" data-formula-id="${f.id}">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
                                 🎬 启动公式变形推导动画
@@ -1097,6 +1097,29 @@ document.addEventListener("DOMContentLoaded", () => {
                     formula: "a = \\sqrt{c^2 - b^2}",
                     desc: "4. 最终直角边公式：左侧开方与平方互相抵消，最终得出计算直角边 $a$ 的变形公式。"
                 }
+            ],
+            // 7. 凸透镜成像定性规律口诀演变
+            "lens-imaging_trans": [
+                {
+                    formula: "\\text{成像口诀：一倍焦距分虚实，二倍焦距分大小}",
+                    desc: "1. 黄金口诀：这是初中物理光学凸透镜成像最为核心的定性口诀。一倍焦距是成实像与虚像的分界点，二倍焦距是成放大像与缩小像的分界点。"
+                },
+                {
+                    formula: "u > 2f \\implies f < v < 2f \\quad \\text{（倒立缩小实像）}",
+                    desc: "2. 照相机状态：当物距大于二倍焦距时，在透镜另一侧一倍到二倍焦距之间成倒立、缩小的实像。像距离透镜比较近。应用于照相机。"
+                },
+                {
+                    formula: "f < u < 2f \\implies v > 2f \\quad \\text{（倒立放大实像）}",
+                    desc: "3. 投影仪状态：当物距在一倍到二倍焦距之间时，在透镜另一侧二倍焦距以外成倒立、放大的实像。像距离透镜非常远。应用于投影仪。"
+                },
+                {
+                    formula: "u \\downarrow \\implies v \\uparrow \\quad \\text{（物近像远）}",
+                    desc: "4. 动态规律 · 物近像远：当蜡烛逐渐靠近透镜时（物距减小，但保持在焦点外），折射光线的会聚点会向后延伸退后。为了在光屏上接收到清晰的实像，光屏必须向远离凸透镜的方向移动（像距变大）。"
+                },
+                {
+                    formula: "\\text{像的尺寸 } \\uparrow \\quad \\text{（像变大）}",
+                    desc: "5. 动态规律 · 像变大：随着光屏不断向后倒退（像距变大），光折射后的会聚光束发散角变大，导致在光屏上接收到的实像尺寸也随之拉伸变大。这就是中考核心口诀：“物近像远像变大”的科学原理。"
+                }
             ]
         },
         
@@ -1151,7 +1174,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 "density": "密度公式",
                 "ohms-law": "欧姆定律",
                 "specific-heat": "比热容热量公式",
-                "pythagorean_theorem": "直角三角形勾股定理"
+                "pythagorean_theorem": "直角三角形勾股定理",
+                "lens-imaging": "凸透镜成像规律"
             };
             const typeNames = {
                 "trans": "变形推导动画",

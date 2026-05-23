@@ -720,6 +720,93 @@ const PHYSICS_DB = {
                     ]
                 }
             ]
+        },
+        {
+            id: "lens-imaging",
+            category: "acoustics-optics",
+            title: "凸透镜成像规律",
+            symbolFormula: "\\text{成像口诀：一倍焦距分虚实，二倍焦距分大小}",
+            definition: "凸透镜成像规律是初中物理光学中最为核心的定性规律，阐明了物距 u 处于不同区间时，所成的实像或虚像的倒正、大小及像距变化规律。这是照相机、投影仪和放大镜的共同工作基石。",
+            variables: [
+                { symbol: "f", name: "凸透镜焦距", mainUnit: "cm", altUnits: [] },
+                { symbol: "u", name: "蜡烛物距", mainUnit: "cm", altUnits: [] }
+            ],
+            transformations: [
+                { resultSymbol: "v", formula: "u > 2f \\implies f < v < 2f \\quad \\text{(缩小实像)}", description: "物距大于二倍焦距所成实像特征（照相机）" },
+                { resultSymbol: "v", formula: "f < u < 2f \\implies v > 2f \\quad \\text{(放大实像)}", description: "物距在一倍到二倍焦距间实像特征（投影仪）" }
+            ],
+            calculator: {
+                variables: ["f", "u"],
+                solve: (inputs) => {
+                    let f = inputs["f"];
+                    let u = inputs["u"];
+                    if (f === null || u === null) {
+                        return { error: "请同时输入凸透镜焦距 f 和物距 u（单位均为 cm）" };
+                    }
+                    if (f <= 0 || u <= 0) {
+                        return { error: "焦距和物距必须为大于0的正数" };
+                    }
+
+                    let stepText = "";
+                    let val = null;
+
+                    stepText += `<div><strong>第一步：区间关系判定</strong><br>`;
+                    stepText += `&nbsp;&nbsp;• 已知焦距 $f = ${f}\\text{ cm}$，二倍焦距 $2f = ${2 * f}\\text{ cm}$。<br>`;
+                    stepText += `&nbsp;&nbsp;• 输入物距 $u = ${u}\\text{ cm}$，`;
+
+                    if (u > 2 * f) {
+                        stepText += `满足 $u > 2f$ ($${u}\\text{ cm} > ${2*f}\\text{ cm}$) 的区间条件。</div>`;
+                        stepText += `<div><strong>第二步：成像性质分析</strong><br>`;
+                        stepText += `&nbsp;&nbsp;• **像的性质**：在透镜另一侧光屏上成**倒立、缩小**的**实像**。<br>`;
+                        stepText += `&nbsp;&nbsp;• **像距范围**：像距 $v$ 的范围在 $f < v < 2f$（即 $${f}\\text{ cm} < v < ${2*f}\\text{ cm}$ 区域）。<br>`;
+                        stepText += `&nbsp;&nbsp;• **应用场景**：这与**照相机**的成像原理相同。<br>`;
+                        stepText += `&nbsp;&nbsp;• **动态规律**：若此时将蜡烛靠近透镜，物距减小，为了承接清晰的像，光屏必须**远离**透镜，且所成的像将**变大**。</div>`;
+                        val = 2 * f - 1; 
+                    } else if (u === 2 * f) {
+                        stepText += `刚好等于二倍焦距 $u = 2f$ ($${u}\\text{ cm} = ${2*f}\\text{ cm}$)。</div>`;
+                        stepText += `<div><strong>第二步：成像性质分析</strong><br>`;
+                        stepText += `&nbsp;&nbsp;• **像的性质**：在透镜另一侧光屏上成**倒立、等大**的**实像**。<br>`;
+                        stepText += `&nbsp;&nbsp;• **像距范围**：像距 $v = 2f = ${2*f}\\text{ cm}$。<br>`;
+                        stepText += `&nbsp;&nbsp;• **应用场景**：这在中考实验中常用于**粗测凸透镜的焦距**。</div>`;
+                        val = 2 * f;
+                    } else if (u > f && u < 2 * f) {
+                        stepText += `满足 $f < u < 2f$ ($${f}\\text{ cm} < ${u}\\text{ cm} < ${2*f}\\text{ cm}$) 的区间条件。</div>`;
+                        stepText += `<div><strong>第二步：成像性质分析</strong><br>`;
+                        stepText += `&nbsp;&nbsp;• **像的性质**：在透镜另一侧光屏上成**倒立、放大**的**实像**。<br>`;
+                        stepText += `&nbsp;&nbsp;• **像距范围**：像距 $v > 2f$（即像距大于 $${2*f}\\text{ cm}$ 区域）。<br>`;
+                        stepText += `&nbsp;&nbsp;• **应用场景**：这与**投影仪/幻灯机**的成像原理相同。<br>`;
+                        stepText += `&nbsp;&nbsp;• **动态规律**：若此时将蜡烛靠近透镜，物距减小，为了承接清晰的像，光屏必须**远离**透镜，且所成的像将**变大**。</div>`;
+                        val = 2 * f + 1;
+                    } else if (u === f) {
+                        stepText += `刚好等于一倍焦距 $u = f$ ($${u}\\text{ cm} = ${f}\\text{ cm}$)。</div>`;
+                        stepText += `<div><strong>第二步：成像性质分析</strong><br>`;
+                        stepText += `&nbsp;&nbsp;• **成像性质**：此时蜡烛处于焦点处，折射光线为平行光射出，**不成像**。<br>`;
+                        stepText += `&nbsp;&nbsp;• **应用场景**：这在物理上用于获得平行光源（如探照灯）。</div>`;
+                        val = f;
+                    } else {
+                        stepText += `满足 $u < f$ ($${u}\\text{ cm} < ${f}\\text{ cm}$) 的区间条件。</div>`;
+                        stepText += `<div><strong>第二步：成像性质分析</strong><br>`;
+                        stepText += `&nbsp;&nbsp;• **像的性质**：成**正立、放大**的**虚像**。像与蜡烛在同侧。<br>`;
+                        stepText += `&nbsp;&nbsp;• **像距范围**：虚像无法在光屏上接收，只能用眼睛透过透镜观察。<br>`;
+                        stepText += `&nbsp;&nbsp;• **应用场景**：这与**放大镜**的原理相同。</div>`;
+                        val = 0.5 * f;
+                    }
+
+                    return { f: val, step: stepText };
+                }
+            },
+            examples: [
+                {
+                    question: "在探究凸透镜成像规律的实验中，将焦距为 10 cm 的凸透镜放在光屏与蜡烛之间。若蜡烛距离凸透镜 15 cm，移动光屏，在光屏上将得到一个怎样的清晰的像？此成像规律在生活中有何应用？",
+                    steps: [
+                        "1. 确定已知条件：焦距 $f = 10\\text{ cm}$，物距 $u = 15\\text{ cm}$。",
+                        "2. 分析判定区间：因为 $10\\text{ cm} < 15\\text{ cm} < 20\\text{ cm}$，即一倍焦距和二倍焦距之间（$f < u < 2f$）。",
+                        "3. 应用初中凸透镜规律结论：当 $f < u < 2f$ 时，在另一侧光屏上将成**倒立、放大**的**实像**。",
+                        "4. 联系生活实际：这一成像规律在日常生活中的应用是**投影仪**（或幻灯机）。",
+                        "**答：** 在光屏上将得到一个倒立、放大的实像；此规律在生活中的应用是投影仪。"
+                    ]
+                }
+            ]
         }
     ],
 

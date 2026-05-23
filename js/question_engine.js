@@ -1259,6 +1259,75 @@ const PHYSICS_ENGINE = {
                 };
             }
         },
+        // ============================== 八、光学透镜成像定性规律模板 (3个追加) ==============================
+        {
+            id: "optics_lens_rule_match",
+            category: "acoustics-optics",
+            type: "fill",
+            score: 10,
+            generator() {
+                const f = PHYSICS_ENGINE.randomPick([10, 12, 15]);
+                const cases = [
+                    { u: 2.5 * f, result: `倒立；缩小；实；照相机`, desc: `物距大于二倍焦距 ($u > 2f$)`, type: "缩小实像", app: "照相机" },
+                    { u: 1.5 * f, result: `倒立；放大；实；投影仪`, desc: `物距在一倍到二倍焦距之间 ($f < u < 2f$)`, type: "放大实像", app: "投影仪" },
+                    { u: 0.6 * f, result: `正立；放大；虚；放大镜`, desc: `物距小于一倍焦距 ($u < f$)`, type: "放大虚像", app: "放大镜" }
+                ];
+                const c = PHYSICS_ENGINE.randomPick(cases);
+                return {
+                    question: `在探究“凸透镜成像规律”的实验中，凸透镜的焦距为 $${f}\\text{ cm}$。若将点燃的蜡烛放在距离凸透镜 $${c.u}\\text{ cm}$ 处。移动光屏，在另一侧的光屏上可以得到一个___________、___________的___________像，在生活中的应用是___________。`,
+                    answer: c.result,
+                    steps: [
+                        `1. **确定条件**：已知焦距 $f = ${f}\\text{ cm}$，二倍焦距 $2f = ${2*f}\\text{ cm}$。蜡烛物距 $u = ${c.u}\\text{ cm}$。`,
+                        `2. **判定区间**：此时物距满足 ${c.desc}。`,
+                        `3. **成像结论**：`,
+                        `   - 当 ${c.desc} 时，成**${c.type}**，实像可以在光屏上承接，且为倒立；虚像无法在光屏上承接，且为正立。`,
+                        `   - 其生活中的典型应用为**${c.app}**。`,
+                        `**答：** 应依次填入：${c.result.split("；").join("、")}。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "optics_lens_range_reverse",
+            category: "acoustics-optics",
+            type: "fill",
+            score: 10,
+            generator() {
+                const f = PHYSICS_ENGINE.randomPick([10, 12, 15]);
+                const cases = [
+                    { type: "倒立、缩小", ans: `u > ${2*f}cm；${f}cm < v < ${2*f}cm`, uRange: `u > 2f`, vRange: `f < v < 2f` },
+                    { type: "倒立、放大", ans: `${f}cm < u < ${2*f}cm；v > ${2*f}cm`, uRange: `f < u < 2f`, vRange: `v > 2f` }
+                ];
+                const c = PHYSICS_ENGINE.randomPick(cases);
+                return {
+                    question: `已知凸透镜的焦距为 $${f}\\text{ cm}$。实验时在光屏上得到了一个清晰、${c.type}的实像。由此可知，此时蜡烛到凸透镜的物距 $u$ 的取值范围是___________，光屏到凸透镜的像距 $v$ 的取值范围是___________。`,
+                    answer: c.ans,
+                    steps: [
+                        `1. **成像性质分析**：光屏上承接到了一个清晰、${c.type}的实像。`,
+                        `2. **逆推物距与像距区间**：根据初中凸透镜定性成像规律：`,
+                        `   - 当成${c.type}的实像时，要求物距范围为 $${c.uRange}$，即 $${c.ans.split("；")[0]}$。`,
+                        `   - 对应的像距范围为 $${c.vRange}$，即 $${c.ans.split("；")[1]}$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "optics_lens_dynamic_trend",
+            category: "acoustics-optics",
+            type: "fill",
+            score: 10,
+            generator() {
+                return {
+                    question: `在探究凸透镜成像实验中，在光屏上得到了蜡烛清晰的像。若将蜡烛向靠近凸透镜方向移动（物距减小，但蜡烛依然在焦点以外），为了能在光屏上再次得到清晰的像，光屏应向___________凸透镜的方向移动（选填“靠近”或“远离”），此时光屏上所成的像将___________（选填“变大”、“变小”或“不变”）。`,
+                    answer: `远离；变大`,
+                    steps: [
+                        `1. **中考核心考点：凸透镜成实像的动态变化规律**。`,
+                        `2. **口诀记忆**：“物近像远像变大，物远像近像变小”。`,
+                        `3. **推导过程**：蜡烛向靠近透镜的方向移动（物距减小），对应的像距必然增大，因此光屏必须**远离**透镜移动。随着像距增大，像的尺寸也随之**变大**。`
+                    ]
+                };
+            }
+        },
         // ============================== 七、强化公式变形与单位换算模板 (26个追加) ==============================
         // ------------------------------ 1. 声学与光学 (4个) ------------------------------
         {
