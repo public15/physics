@@ -573,7 +573,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                                     <div class="tips-title">中考必背口诀</div>
                                                     <div class="tips-content" id="tips-linear-content">k > 0: 图像经过一、三象限，y 随 x 的增大而增大</div>
                                                 </div>
-                                                <button class="anim-trigger-btn anim-graph-btn" id="btn-anim-linear" data-func="linear" style="margin-top: 10px; width: 100%;">
+                                                <button class="anim-trigger-btn anim-graph-btn" id="btn-anim-linear" data-anim-type="trans" data-formula-id="linear" data-func="linear" style="margin-top: 10px; width: 100%;">
                                                     🎬 播放直线旋转与平移口诀动画
                                                 </button>
                                             ` : `
@@ -603,7 +603,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                                     <div class="tips-title">对称轴与顶点分析</div>
                                                     <div class="tips-content" id="tips-quadratic-content">开口向上，顶点 (0, 0)，对称轴 x = 0</div>
                                                 </div>
-                                                <button class="anim-trigger-btn anim-graph-btn" id="btn-anim-quadratic" data-func="quadratic" style="margin-top: 10px; width: 100%;">
+                                                <button class="anim-trigger-btn anim-graph-btn" id="btn-anim-quadratic" data-anim-type="trans" data-formula-id="quadratic" data-func="quadratic" style="margin-top: 10px; width: 100%;">
                                                     🎬 播放“左同右异”与开口变化动画
                                                 </button>
                                             `}
@@ -928,9 +928,10 @@ document.addEventListener("DOMContentLoaded", () => {
         // D. 绑定公式变形与单位换算动画触发器
         const animTriggerBtns = card.querySelectorAll(".anim-trigger-btn");
         animTriggerBtns.forEach(btn => {
-            btn.addEventListener("click", () => {
+            btn.addEventListener("click", (e) => {
                 const animType = btn.getAttribute("data-anim-type");
                 const formulaId = btn.getAttribute("data-formula-id");
+                if (!animType || !formulaId) return; // 拦截没有声明完整动画属性的特殊按钮
                 FormulaAnimator.start(animType, formulaId);
             });
         });
