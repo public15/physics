@@ -1672,6 +1672,81 @@ const PHYSICS_ENGINE = {
             }
         },
         {
+            id: "math_sq_diff_simp_calc",
+            category: "num-exp",
+            type: "fill",
+            score: 10,
+            generator() {
+                const base = PHYSICS_ENGINE.randomPick([50, 100, 200, 1000]);
+                const diff = PHYSICS_ENGINE.randomPick([1, 2, 3, 5]);
+                const num1 = base + diff;
+                const num2 = base - diff;
+                const ans = num1 * num2;
+                return {
+                    question: `利用平方差公式进行简便乘法计算：$${num1} \\times ${num2} = $___________。`,
+                    answer: `${ans}`,
+                    steps: [
+                        `1. 观察数字特点，可将乘积变形为平方差公式的标准形式：`,
+                        `   $${num1} \\times ${num2} = (${base} + ${diff})(${base} - ${diff})$。`,
+                        `2. 应用平方差公式 $(a+b)(a-b) = a^2 - b^2$：`,
+                        `   $(${base} + ${diff})(${base} - ${diff}) = ${base}^2 - ${diff}^2$。`,
+                        `3. 计算得出最终结果：`,
+                        `   $${base}^2 - ${diff}^2 = ${base * base} - ${diff * diff} = ${ans}$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "math_sq_diff_algebra_calc",
+            category: "num-exp",
+            type: "fill",
+            score: 10,
+            generator() {
+                const x_y_sum = PHYSICS_ENGINE.randomPick([6, 8, 10, 12, 16]);
+                const x_y_diff = PHYSICS_ENGINE.randomPick([2, 4, 6]);
+                const sq_diff = x_y_sum * x_y_diff;
+                const coef = PHYSICS_ENGINE.randomPick([2, 3, 5]);
+                const ans = coef * x_y_sum;
+                return {
+                    question: `若实数 $x, y$ 满足关系式 $x - y = ${x_y_diff}$，且平方差 $x^2 - y^2 = ${sq_diff}$，则代数式 $${coef}(x + y)$ 的值为___________。`,
+                    answer: `${ans}`,
+                    steps: [
+                        `1. 根据平方差公式的乘法恒等变形：$x^2 - y^2 = (x + y)(x - y)$。`,
+                        `2. 将已知数值 $x - y = ${x_y_diff}$ 且 $x^2 - y^2 = ${sq_diff}$ 代入公式中：`,
+                        `   $${sq_diff} = (x + y) \\times ${x_y_diff}$。`,
+                        `3. 解方程求得两数之和：$x + y = \\frac{${sq_diff}}{${x_y_diff}} = ${x_y_sum}$。`,
+                        `4. 乘上系数求代数式的值：$${coef}(x + y) = ${coef} \\times ${x_y_sum} = ${ans}$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "math_sq_diff_expand",
+            category: "num-exp",
+            type: "fill",
+            score: 10,
+            generator() {
+                const coefA = PHYSICS_ENGINE.randomPick([2, 3, 4, 5]);
+                const coefB = PHYSICS_ENGINE.randomPick([1, 2, 3, 5]);
+                const termA = `${coefA}x`;
+                const termB = coefB === 1 ? "y" : `${coefB}y`;
+                const ans_str = `${coefA * coefA}x^2 - ${coefB * coefB}y^2`;
+                const ans_str_no_space = `${coefA * coefA}x^2-${coefB * coefB}y^2`;
+                return {
+                    question: `利用平方差公式展开整式乘积（请使用小写字母表示，不含空格，如 4x^2-9y^2）：$( ${termA} + ${termB} )( ${termA} - ${termB} ) = $___________。`,
+                    answer: `${ans_str_no_space}`,
+                    steps: [
+                        `1. 观察已知多项式乘积：$( ${termA} + ${termB} )( ${termA} - ${termB} )$，其符合平方差公式的形式。`,
+                        `2. 识别公式对应的项：$a = ${termA}$， $b = ${termB}$。`,
+                        `3. 代入平方差展开公式 $(a+b)(a-b) = a^2 - b^2$：`,
+                        `   $( ${termA} + ${termB} )( ${termA} - ${termB} ) = (${termA})^2 - (${termB})^2$。`,
+                        `4. 分别计算平方项并合并：$(${termA})^2 = ${coefA * coefA}x^2$，$(${termB})^2 = ${coefB * coefB}y^2$。`,
+                        `   最终展开式为：$${ans_str}$。`
+                    ]
+                };
+            }
+        },
+        {
             id: "math_unit_convert_area",
             category: "num-exp",
             type: "fill",

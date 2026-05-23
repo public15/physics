@@ -35,6 +35,64 @@ const MATH_DB = {
     formulas: [
         // ================= 一、数与式 =================
         {
+            id: "square_difference",
+            category: "num-exp",
+            title: "平方差公式",
+            symbolFormula: "(a + b)(a - b) = a^2 - b^2",
+            definition: "两个数的和与这两个数的差的积，等于这两个数的平方差。这在因式分解、分母有理化与代数简便计算中起着极其关键的作用。",
+            variables: [
+                { symbol: "a+b", name: "两数之和", mainUnit: "数值", altUnits: [] },
+                { symbol: "a-b", name: "两数之差", mainUnit: "数值", altUnits: [] },
+                { symbol: "a^2-b^2", name: "两数平方差", mainUnit: "数值", altUnits: [] }
+            ],
+            transformations: [
+                { resultSymbol: "a^2-b^2", formula: "a^2 - b^2 = (a+b)(a-b)", description: "平方差公式逆向用作因式分解" },
+                { resultSymbol: "a^2", formula: "a^2 = b^2 + (a+b)(a-b)", description: "平方差公式的移项变形" }
+            ],
+            calculator: {
+                variables: ["a+b", "a-b", "a^2-b^2"],
+                solve: (inputs) => {
+                    let sum = inputs["a+b"];
+                    let diff = inputs["a-b"];
+                    let sqDiff = inputs["a^2-b^2"];
+
+                    if (sqDiff === null && sum !== null && diff !== null) {
+                        const ans = sum * diff;
+                        return {
+                            "a^2-b^2": ans,
+                            step: "a^2 - b^2 = (a+b)(a-b) = (" + sum + ") \\times (" + diff + ") = " + ans
+                        };
+                    } else if (sum === null && sqDiff !== null && diff !== null) {
+                        if (diff === 0) return { error: "两数之差不能为0" };
+                        const ans = sqDiff / diff;
+                        return {
+                            "a+b": ans,
+                            step: "a+b = \\frac{a^2-b^2}{a-b} = \\frac{" + sqDiff + "}{" + diff + "} = " + ans.toFixed(2).replace(/\.?0+$/, '')
+                        };
+                    } else if (diff === null && sqDiff !== null && sum !== null) {
+                        if (sum === 0) return { error: "两数之和不能为0" };
+                        const ans = sqDiff / sum;
+                        return {
+                            "a-b": ans,
+                            step: "a-b = \\frac{a^2-b^2}{a+b} = \\frac{" + sqDiff + "}{" + sum + "} = " + ans.toFixed(2).replace(/\.?0+$/, '')
+                        };
+                    }
+                    return null;
+                }
+            },
+            examples: [
+                {
+                    question: "已知两数之和 $x+y = 6$，两数之差 $x-y = 2$。求这组数对应的平方差 $x^2-y^2$ 的值是多少？",
+                    steps: [
+                        "1. 根据平方差乘法公式：$x^2-y^2 = (x+y)(x-y)$。",
+                        "2. 代入已知量：$x+y = 6$，$x-y = 2$。",
+                        "3. 计算代入乘积：$x^2-y^2 = 6 \\times 2 = 12$。",
+                        "**答：** $x^2-y^2$ 的值是 $12$。"
+                    ]
+                }
+            ]
+        },
+        {
             id: "perfect_square",
             category: "num-exp",
             title: "完全平方公式",

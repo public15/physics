@@ -1905,3 +1905,219 @@ body {
     fill: currentColor;
 }
 
+/* ==========================================================================
+   9. 数学宝典：一次与二次函数 Canvas 动态图形演示实验室高级玻璃态样式
+   ========================================================================== */
+
+/* 双列分割布局，支持响应式 */
+.function-graph-split {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.function-calc-side {
+    flex: 1 1 240px;
+    display: flex;
+    flex-direction: column;
+}
+
+.function-graph-side {
+    flex: 1 1 300px;
+    display: flex;
+    flex-direction: column;
+}
+
+.side-sub-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    border-left: 3px solid var(--accent-color);
+    padding-left: 6px;
+}
+
+/* 矢量绘图展台大框 */
+.function-graph-lab {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.theme-light .function-graph-lab {
+    background: rgba(0, 0, 0, 0.01);
+}
+
+/* 绘图 Canvas 包装器：具有高端暗黑视网膜级黑色网格背景与流光外阴影 */
+.graph-canvas-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    background: #0b0f19;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6), 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.theme-light .graph-canvas-wrapper {
+    background: #fdfdfd;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
+.function-graph-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+}
+
+/* 滑块控制器 */
+.graph-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.control-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.slider-label-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+}
+
+.param-title {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.param-val {
+    font-family: 'Outfit', var(--font-primary);
+    font-weight: 700;
+    color: var(--accent-color);
+    background: var(--bg-pill);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+}
+
+/* 高端客制化 Range 滑动输入条 */
+.graph-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border-color);
+    outline: none;
+    transition: background 0.3s;
+}
+
+.graph-slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 6px;
+    cursor: pointer;
+    background: var(--bg-pill);
+    border-radius: 3px;
+    border: none;
+}
+
+.graph-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent-gradient);
+    cursor: pointer;
+    margin-top: -5px; /* (6px - 16px)/2 */
+    box-shadow: 0 0 10px var(--accent-glow), 0 2px 6px rgba(0, 0, 0, 0.3);
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.graph-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 15px var(--accent-color), 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.theme-light .graph-slider::-webkit-slider-thumb {
+    box-shadow: 0 0 6px var(--accent-glow), 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 动态解析公式展示牌 */
+.graph-formula-show {
+    background: var(--math-box-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 8px 12px;
+    text-align: center;
+    font-family: 'Outfit', var(--font-primary);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text-primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all var(--transition-fast);
+}
+
+/* 中考口诀与顶点对称轴展台 */
+.graph-tips-box {
+    background: rgba(168, 85, 247, 0.04);
+    border: 1px dashed rgba(168, 85, 247, 0.2);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.theme-light .graph-tips-box {
+    background: rgba(124, 58, 237, 0.02);
+    border-color: rgba(124, 58, 237, 0.15);
+}
+
+.tips-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tips-content {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+/* 口诀动画特定按钮 */
+.anim-graph-btn {
+    background: rgba(59, 130, 246, 0.08) !important;
+    border: 1px solid rgba(59, 130, 246, 0.15) !important;
+    color: #60a5fa !important;
+}
+
+.anim-graph-btn:hover {
+    background: rgba(59, 130, 246, 0.15) !important;
+    border-color: rgba(59, 130, 246, 0.3) !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15) !important;
+}

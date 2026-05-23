@@ -59,6 +59,277 @@ document.addEventListener("DOMContentLoaded", () => {
         loadingOverlay: document.getElementById("loadingOverlay")
     };
 
+    // ====================================================
+    // FunctionGrapher: 一次和二次函数 Canvas 极速矢量渲染引擎
+    // ====================================================
+    class FunctionGrapher {
+        constructor(canvasId, type) {
+            this.canvas = document.getElementById(canvasId);
+            if (!this.canvas) return;
+            this.ctx = this.canvas.getContext("2d");
+            this.type = type; // "linear" 或 "quadratic"
+            
+            // 设定参数默认值
+            this.k = 1.0;
+            this.b = 0.0;
+            
+            this.a = 1.0;
+            this.qb = 0.0;
+            this.qc = 0.0;
+            
+            // 网格比例
+            this.scale = 22; // 1个数学单位 = 22像素，刚好能在一屏内显示完整
+            
+            // 高清屏支持
+            this.setupRetina();
+            this.draw();
+        }
+
+        setupRetina() {
+            const rect = this.canvas.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            this.canvas.width = rect.width * dpr;
+            this.canvas.height = rect.height * dpr;
+            this.ctx.scale(dpr, dpr);
+            this.width = rect.width;
+            this.height = rect.height;
+            this.centerX = this.width / 2;
+            this.centerY = this.height / 2;
+        }
+
+        toPixelX(x) {
+            return this.centerX + x * this.scale;
+        }
+
+        toPixelY(y) {
+            return this.centerY - y * this.scale;
+        }
+
+        toMathX(pixelX) {
+            return (pixelX - this.centerX) / this.scale;
+        }
+
+        toMathY(pixelY) {
+            return (this.centerY - pixelY) / this.scale;
+        }
+
+        draw() {
+            const ctx = this.ctx;
+            ctx.clearRect(0, 0, this.width, this.height);
+            
+            const isDark = document.body.classList.contains("theme-dark");
+            
+            // 定义和谐颜色
+            const gridColor = isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.04)";
+            const axisColor = isDark ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.15)";
+            const axisLabelColor = isDark ? "rgba(255, 255, 255, 0.4)" : "rgba(0, 0, 0, 0.4)";
+            const primaryCurveColor = this.type === 'linear' ? '#60a5fa' : '#a855f7';
+            
+            // 1. 绘制网格
+            ctx.strokeStyle = gridColor;
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 4]);
+            
+            const maxUnitsX = Math.ceil(this.centerX / this.scale);
+            const maxUnitsY = Math.ceil(this.centerY / this.scale);
+            
+            // 垂直网格
+            for (let i = -maxUnitsX; i <= maxUnitsX; i++) {
+                const px = this.toPixelX(i);
+                ctx.beginPath();
+                ctx.moveTo(px, 0);
+                ctx.lineTo(px, this.height);
+                ctx.stroke();
+            }
+            
+            // 水平网格
+            for (let i = -maxUnitsY; i <= maxUnitsY; i++) {
+                const py = this.toPixelY(i);
+                ctx.beginPath();
+                ctx.moveTo(0, py);
+                ctx.lineTo(this.width, py);
+                ctx.stroke();
+            }
+            
+            // 2. 轴实线
+            ctx.strokeStyle = axisColor;
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([]);
+            
+            ctx.beginPath();
+            ctx.moveTo(0, this.centerY);
+            ctx.lineTo(this.width, this.centerY);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(this.centerX, 0);
+            ctx.lineTo(this.centerX, this.height);
+            ctx.stroke();
+            
+            // X轴箭头
+            ctx.fillStyle = axisColor;
+            ctx.beginPath();
+            ctx.moveTo(this.width - 8, this.centerY - 4);
+            ctx.lineTo(this.width, this.centerY);
+            ctx.lineTo(this.width - 8, this.centerY + 4);
+            ctx.fill();
+            
+            // Y轴箭头
+            ctx.beginPath();
+            ctx.moveTo(this.centerX - 4, 8);
+            ctx.lineTo(this.centerX, 0);
+            ctx.lineTo(this.centerX + 4, 8);
+            ctx.fill();
+            
+            // 标注 O, x, y
+            ctx.fillStyle = axisLabelColor;
+            ctx.font = "italic 11px Outfit, var(--font-primary)";
+            ctx.fillText("x", this.width - 12, this.centerY + 14);
+            ctx.fillText("y", this.centerX - 14, 12);
+            ctx.fillText("O", this.centerX + 5, this.centerY + 14);
+            
+            // 绘制坐标轴上的刻度数值 (排除原点 0)
+            ctx.font = "9px Outfit, var(--font-primary)";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "top";
+            
+            for (let i = -maxUnitsX; i <= maxUnitsX; i++) {
+                if (i === 0) continue;
+                const px = this.toPixelX(i);
+                ctx.fillText(i.toString(), px, this.centerY + 4);
+                // 小刻度线
+                ctx.beginPath();
+                ctx.moveTo(px, this.centerY - 2);
+                ctx.lineTo(px, this.centerY + 2);
+                ctx.strokeStyle = axisColor;
+                ctx.stroke();
+            }
+            
+            ctx.textAlign = "right";
+            ctx.textBaseline = "middle";
+            for (let i = -maxUnitsY; i <= maxUnitsY; i++) {
+                if (i === 0) continue;
+                const py = this.toPixelY(i);
+                ctx.fillText(i.toString(), this.centerX - 4, py);
+                // 小刻度线
+                ctx.beginPath();
+                ctx.moveTo(this.centerX - 2, py);
+                ctx.lineTo(this.centerX + 2, py);
+                ctx.strokeStyle = axisColor;
+                ctx.stroke();
+            }
+
+            // 4. 绘制函数图像
+            if (this.type === "linear") {
+                // y = kx + b
+                ctx.strokeStyle = primaryCurveColor;
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                
+                const startX = this.toMathX(0);
+                const endX = this.toMathX(this.width);
+                const startY = this.k * startX + this.b;
+                const endY = this.k * endX + this.b;
+                
+                ctx.moveTo(this.toPixelX(startX), this.toPixelY(startY));
+                ctx.lineTo(this.toPixelX(endX), this.toPixelY(endY));
+                ctx.stroke();
+                
+                // 绘制 Y轴截距点 (0, b)
+                const ptX = this.toPixelX(0);
+                const ptY = this.toPixelY(this.b);
+                
+                // 呼吸发光层
+                ctx.fillStyle = isDark ? "rgba(96, 165, 250, 0.25)" : "rgba(96, 165, 250, 0.15)";
+                ctx.beginPath();
+                ctx.arc(ptX, ptY, 7, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 实心点
+                ctx.fillStyle = "#60a5fa";
+                ctx.beginPath();
+                ctx.arc(ptX, ptY, 3.5, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 标注文字
+                ctx.fillStyle = isDark ? "#fff" : "#333";
+                ctx.font = "bold 9px Outfit, var(--font-primary)";
+                ctx.textAlign = "left";
+                ctx.fillText(`(0, ${this.b.toFixed(1).replace(/\.0$/, '')})`, ptX + 8, ptY);
+                
+            } else if (this.type === "quadratic") {
+                // y = ax^2 + bx + c
+                if (this.a !== 0) {
+                    const symX = -this.qb / (2 * this.a);
+                    const symPx = this.toPixelX(symX);
+                    
+                    // 对称轴黄色虚线
+                    ctx.strokeStyle = isDark ? "rgba(234, 179, 8, 0.4)" : "rgba(234, 179, 8, 0.6)";
+                    ctx.lineWidth = 1.2;
+                    ctx.setLineDash([4, 4]);
+                    ctx.beginPath();
+                    ctx.moveTo(symPx, 0);
+                    ctx.lineTo(symPx, this.height);
+                    ctx.stroke();
+                    ctx.setLineDash([]); // 恢复
+                    
+                    ctx.fillStyle = isDark ? "rgba(234, 179, 8, 0.8)" : "rgba(202, 138, 4, 0.9)";
+                    ctx.font = "italic 9px Noto Sans SC, var(--font-primary)";
+                    ctx.textAlign = "left";
+                    ctx.fillText(`对称轴 x = ${symX.toFixed(2).replace(/\.?0+$/, '')}`, symPx + 6, 16);
+                }
+                
+                // 抛物线
+                ctx.strokeStyle = primaryCurveColor;
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                
+                let first = true;
+                for (let px = 0; px <= this.width; px += 2) {
+                    const mx = this.toMathX(px);
+                    const my = this.a * mx * mx + this.qb * mx + this.qc;
+                    const py = this.toPixelY(my);
+                    
+                    if (py >= -50 && py <= this.height + 50) {
+                        if (first) {
+                            ctx.moveTo(px, py);
+                            first = false;
+                        } else {
+                            ctx.lineTo(px, py);
+                        }
+                    }
+                }
+                ctx.stroke();
+                
+                // 绘制顶点
+                if (this.a !== 0) {
+                    const vx = -this.qb / (2 * this.a);
+                    const vy = (4 * this.a * this.qc - this.qb * this.qb) / (4 * this.a);
+                    const vPx = this.toPixelX(vx);
+                    const vPy = this.toPixelY(vy);
+                    
+                    if (vPx >= 0 && vPx <= this.width && vPy >= 0 && vPy <= this.height) {
+                        ctx.fillStyle = isDark ? "rgba(168, 85, 247, 0.35)" : "rgba(168, 85, 247, 0.2)";
+                        ctx.beginPath();
+                        ctx.arc(vPx, vPy, 8, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.fillStyle = "#c084fc";
+                        ctx.beginPath();
+                        ctx.arc(vPx, vPy, 3.5, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.fillStyle = isDark ? "#fff" : "#333";
+                        ctx.font = "bold 9px Outfit, var(--font-primary)";
+                        ctx.textAlign = vx >= 0 ? "left" : "right";
+                        const offset = vx >= 0 ? 8 : -8;
+                        ctx.fillText(`顶点 (${vx.toFixed(1).replace(/\.0$/, '')}, ${vy.toFixed(1).replace(/\.0$/, '')})`, vPx + offset, vPy - 3);
+                    }
+                }
+            }
+        }
+    }
+
     // ----------------------------------------------------
     // 3. 学科切换与数据分流辅助函数
     // ----------------------------------------------------
@@ -248,42 +519,136 @@ document.addEventListener("DOMContentLoaded", () => {
                     
                     <!-- Tab 3: 单位换算与交互计算器 -->
                     <div class="tab-pane" data-tab-pane="calc">
-                        <div class="calc-inputs-container">
-                            ${f.id === 'variance_formula' ? `
-                                <div class="variance-calc-container">
-                                    <div class="variance-input-desc">请输入一组以英文逗号隔开的样本数据（如: 2, 4, 6, 8, 10）:</div>
-                                    <input type="text" class="variance-input-field calc-field" placeholder="例如: 2, 4, 6, 8, 10" data-var="list">
-                                </div>
-                            ` : f.variables.map(v => `
-                                <div class="calc-input-row">
-                                    <span class="symbol" id="calc-sym-${f.id}-${v.symbol.replace(/[^a-zA-Z0-9]/g, '')}"></span>
-                                    <input type="number" placeholder="请输入数值" data-var="${v.symbol}" class="calc-field">
-                                    <select data-var="${v.symbol}" class="unit-select">
-                                        <option value="1" data-unit-name="${v.mainUnit}">${v.mainUnit} (标准)</option>
-                                        ${(v.altUnits || []).map(au => `
-                                            <option value="${au.factor}" data-unit-name="${au.unit}">${au.unit}</option>
+                        ${f.id === 'linear_function' || f.id === 'quadratic_function' ? `
+                            <div class="function-graph-split">
+                                <div class="function-calc-side">
+                                    <div class="side-sub-title">待定系数/公式法计算器</div>
+                                    <div class="calc-inputs-container">
+                                        ${f.variables.map(v => `
+                                            <div class="calc-input-row">
+                                                <span class="symbol" id="calc-sym-${f.id}-${v.symbol.replace(/[^a-zA-Z0-9]/g, '')}"></span>
+                                                <input type="number" placeholder="请输入数值" data-var="${v.symbol}" class="calc-field">
+                                                <select data-var="${v.symbol}" class="unit-select">
+                                                    <option value="1" data-unit-name="${v.mainUnit}">${v.mainUnit} (标准)</option>
+                                                </select>
+                                            </div>
                                         `).join('')}
-                                    </select>
+                                    </div>
+                                    <div class="calc-actions">
+                                        <button class="calc-btn">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                            智能求解 & 换算
+                                        </button>
+                                        <button class="reset-btn">清空</button>
+                                    </div>
+                                    <div class="calc-result-box">
+                                        <span class="result-title">名师解析代入步骤</span>
+                                        <span class="result-step"></span>
+                                    </div>
                                 </div>
-                            `).join('')}
-                        </div>
-                        <div class="calc-actions">
-                            <button class="calc-btn">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                                智能求解 & 换算
-                            </button>
-                            <button class="reset-btn">清空</button>
-                        </div>
-                        <div class="calc-result-box">
-                            <span class="result-title">名师解析代入步骤</span>
-                            <span class="result-step"></span>
-                        </div>
-                        ${['speed', 'density'].includes(f.id) ? `
-                            <button class="anim-trigger-btn" data-anim-type="unit" data-formula-id="${f.id}">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                                🎬 启动单位换算推导动画
-                            </button>
-                        ` : ''}
+                                <div class="function-graph-side">
+                                    <div class="side-sub-title">中考图形极速矢量演示实验室</div>
+                                    <div class="function-graph-lab">
+                                        <div class="graph-canvas-wrapper">
+                                            <canvas class="function-graph-canvas" id="canvas-${f.id}" width="280" height="280"></canvas>
+                                        </div>
+                                        <div class="graph-controls">
+                                            ${f.id === 'linear_function' ? `
+                                                <div class="control-row">
+                                                    <div class="slider-label-area">
+                                                        <span class="param-title">斜率 k =</span>
+                                                        <span class="param-val" id="val-linear-k">1.0</span>
+                                                    </div>
+                                                    <input type="range" class="graph-slider" id="slider-linear-k" min="-5" max="5" step="0.1" value="1">
+                                                </div>
+                                                <div class="control-row">
+                                                    <div class="slider-label-area">
+                                                        <span class="param-title">截距 b =</span>
+                                                        <span class="param-val" id="val-linear-b">0.0</span>
+                                                    </div>
+                                                    <input type="range" class="graph-slider" id="slider-linear-b" min="-5" max="5" step="0.1" value="0">
+                                                </div>
+                                                <div class="graph-formula-show" id="formula-linear-show">y = 1.0x</div>
+                                                <div class="graph-tips-box" id="tips-linear-show">
+                                                    <div class="tips-title">中考必背口诀</div>
+                                                    <div class="tips-content" id="tips-linear-content">k > 0: 图像经过一、三象限，y 随 x 的增大而增大</div>
+                                                </div>
+                                                <button class="anim-trigger-btn anim-graph-btn" id="btn-anim-linear" data-func="linear" style="margin-top: 10px; width: 100%;">
+                                                    🎬 播放直线旋转与平移口诀动画
+                                                </button>
+                                            ` : `
+                                                <div class="control-row">
+                                                    <div class="slider-label-area">
+                                                        <span class="param-title">二次项 a =</span>
+                                                        <span class="param-val" id="val-quadratic-a">1.0</span>
+                                                    </div>
+                                                    <input type="range" class="graph-slider" id="slider-quadratic-a" min="-4" max="4" step="0.1" value="1">
+                                                </div>
+                                                <div class="control-row">
+                                                    <div class="slider-label-area">
+                                                        <span class="param-title">一次项 b =</span>
+                                                        <span class="param-val" id="val-quadratic-b">0.0</span>
+                                                    </div>
+                                                    <input type="range" class="graph-slider" id="slider-quadratic-b" min="-4" max="4" step="0.1" value="0">
+                                                </div>
+                                                <div class="control-row">
+                                                    <div class="slider-label-area">
+                                                        <span class="param-title">常数项 c =</span>
+                                                        <span class="param-val" id="val-quadratic-c">0.0</span>
+                                                    </div>
+                                                    <input type="range" class="graph-slider" id="slider-quadratic-c" min="-4" max="4" step="0.1" value="0">
+                                                </div>
+                                                <div class="graph-formula-show" id="formula-quadratic-show">y = 1.0x^2</div>
+                                                <div class="graph-tips-box" id="tips-quadratic-show">
+                                                    <div class="tips-title">对称轴与顶点分析</div>
+                                                    <div class="tips-content" id="tips-quadratic-content">开口向上，顶点 (0, 0)，对称轴 x = 0</div>
+                                                </div>
+                                                <button class="anim-trigger-btn anim-graph-btn" id="btn-anim-quadratic" data-func="quadratic" style="margin-top: 10px; width: 100%;">
+                                                    🎬 播放“左同右异”与开口变化动画
+                                                </button>
+                                            `}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : `
+                            <div class="calc-inputs-container">
+                                ${f.id === 'variance_formula' ? `
+                                    <div class="variance-calc-container">
+                                        <div class="variance-input-desc">请输入一组以英文逗号隔开的样本数据（如: 2, 4, 6, 8, 10）:</div>
+                                        <input type="text" class="variance-input-field calc-field" placeholder="例如: 2, 4, 6, 8, 10" data-var="list">
+                                    </div>
+                                ` : f.variables.map(v => `
+                                    <div class="calc-input-row">
+                                        <span class="symbol" id="calc-sym-${f.id}-${v.symbol.replace(/[^a-zA-Z0-9]/g, '')}"></span>
+                                        <input type="number" placeholder="请输入数值" data-var="${v.symbol}" class="calc-field">
+                                        <select data-var="${v.symbol}" class="unit-select">
+                                            <option value="1" data-unit-name="${v.mainUnit}">${v.mainUnit} (标准)</option>
+                                            ${(v.altUnits || []).map(au => `
+                                                <option value="${au.factor}" data-unit-name="${au.unit}">${au.unit}</option>
+                                            `).join('')}
+                                        </select>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div class="calc-actions">
+                                <button class="calc-btn">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                    智能求解 & 换算
+                                </button>
+                                <button class="reset-btn">清空</button>
+                            </div>
+                            <div class="calc-result-box">
+                                <span class="result-title">名师解析代入步骤</span>
+                                <span class="result-step"></span>
+                            </div>
+                            ${['speed', 'density'].includes(f.id) ? `
+                                <button class="anim-trigger-btn" data-anim-type="unit" data-formula-id="${f.id}">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                    🎬 启动单位换算推导动画
+                                </button>
+                            ` : ''}
+                        `}
                     </div>
                     
                     <!-- Tab 4: 典型例题 -->
@@ -569,6 +934,142 @@ document.addEventListener("DOMContentLoaded", () => {
                 FormulaAnimator.start(animType, formulaId);
             });
         });
+
+        // E. 数学图形仿真实验室特异性绑定
+        if (formulaObj.id === 'linear_function') {
+            setTimeout(() => {
+                const grapher = new FunctionGrapher("canvas-linear_function", "linear");
+                
+                const sliderK = card.querySelector("#slider-linear-k");
+                const sliderB = card.querySelector("#slider-linear-b");
+                
+                const valK = card.querySelector("#val-linear-k");
+                const valB = card.querySelector("#val-linear-b");
+                
+                const formulaShow = card.querySelector("#formula-linear-show");
+                const tipsContent = card.querySelector("#tips-linear-content");
+                
+                const updateGraph = () => {
+                    if (!sliderK || !sliderB) return;
+                    const k = parseFloat(sliderK.value);
+                    const b = parseFloat(sliderB.value);
+                    
+                    grapher.k = k;
+                    grapher.b = b;
+                    grapher.draw();
+                    
+                    if (valK) valK.textContent = k.toFixed(1);
+                    if (valB) valB.textContent = b.toFixed(1);
+                    
+                    let bText = b >= 0 ? `+ ${b.toFixed(1)}` : `- ${Math.abs(b).toFixed(1)}`;
+                    if (b === 0) bText = "";
+                    if (formulaShow) formulaShow.innerHTML = `y = ${k.toFixed(1)}x ${bText}`;
+                    
+                    let tip = "";
+                    if (k > 0) {
+                        tip += "k > 0: 图像经过一、三象限，y 随 x 的增大而增大；";
+                        if (b > 0) tip += " 经过一、二、三象限。";
+                        else if (b < 0) tip += " 经过一、三、四象限。";
+                        else tip += " 经过一、三象限及原点。";
+                    } else if (k < 0) {
+                        tip += "k < 0: 图像经过二、四象限，y 随 x 的增大而减小；";
+                        if (b > 0) tip += " 经过一、二、四象限。";
+                        else if (b < 0) tip += " 经过二、三、四象限。";
+                        else tip += " 经过二、四象限及原点。";
+                    } else {
+                        tip += "k = 0: 图像退化为水平直线 y = b，不属于一次函数。";
+                    }
+                    if (tipsContent) tipsContent.textContent = tip;
+                };
+                
+                if (sliderK && sliderB) {
+                    sliderK.addEventListener("input", updateGraph);
+                    sliderB.addEventListener("input", updateGraph);
+                    updateGraph();
+                }
+
+                // 绑定特异性动画按钮
+                const btnAnimLinear = card.querySelector("#btn-anim-linear");
+                if (btnAnimLinear) {
+                    btnAnimLinear.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        FormulaAnimator.start("trans", "linear");
+                    });
+                }
+            }, 100);
+        }
+
+        if (formulaObj.id === 'quadratic_function') {
+            setTimeout(() => {
+                const grapher = new FunctionGrapher("canvas-quadratic_function", "quadratic");
+                
+                const sliderA = card.querySelector("#slider-quadratic-a");
+                const sliderB = card.querySelector("#slider-quadratic-b");
+                const sliderC = card.querySelector("#slider-quadratic-c");
+                
+                const valA = card.querySelector("#val-quadratic-a");
+                const valB = card.querySelector("#val-quadratic-b");
+                const valC = card.querySelector("#val-quadratic-c");
+                
+                const formulaShow = card.querySelector("#formula-quadratic-show");
+                const tipsContent = card.querySelector("#tips-quadratic-content");
+                
+                const updateGraph = () => {
+                    if (!sliderA || !sliderB || !sliderC) return;
+                    let a = parseFloat(sliderA.value);
+                    if (a === 0) {
+                        a = 0.1;
+                        sliderA.value = 0.1;
+                    }
+                    const b = parseFloat(sliderB.value);
+                    const c = parseFloat(sliderC.value);
+                    
+                    grapher.a = a;
+                    grapher.qb = b;
+                    grapher.qc = c;
+                    grapher.draw();
+                    
+                    if (valA) valA.textContent = a.toFixed(1);
+                    if (valB) valB.textContent = b.toFixed(1);
+                    if (valC) valC.textContent = c.toFixed(1);
+                    
+                    let bText = b >= 0 ? `+ ${b.toFixed(1)}x` : `- ${Math.abs(b).toFixed(1)}x`;
+                    if (b === 0) bText = "";
+                    let cText = c >= 0 ? `+ ${c.toFixed(1)}` : `- ${Math.abs(c).toFixed(1)}`;
+                    if (c === 0) cText = "";
+                    if (formulaShow) formulaShow.innerHTML = `y = ${a.toFixed(1)}x² ${bText} ${cText}`;
+                    
+                    const symX = -b / (2 * a);
+                    const vy = (4 * a * c - b * b) / (4 * a);
+                    let tip = `开口${a > 0 ? "向上" : "向下"}。对称轴 x = ${symX.toFixed(2)}。顶点坐标 (${symX.toFixed(1)}, ${vy.toFixed(1)})。`;
+                    
+                    if (b !== 0) {
+                        const sameSign = (a > 0 && b > 0) || (a < 0 && b < 0);
+                        tip += sameSign ? "【左同】ab同号，对称轴在y轴左侧；" : "【右异】ab异号，对称轴在y轴右侧；";
+                    } else {
+                        tip += "b = 0，对称轴为y轴；";
+                    }
+                    tip += ` 与y轴交于 (0, ${c.toFixed(1)})。`;
+                    if (tipsContent) tipsContent.textContent = tip;
+                };
+                
+                if (sliderA && sliderB && sliderC) {
+                    sliderA.addEventListener("input", updateGraph);
+                    sliderB.addEventListener("input", updateGraph);
+                    sliderC.addEventListener("input", updateGraph);
+                    updateGraph();
+                }
+
+                // 绑定特异性动画按钮
+                const btnAnimQuadratic = card.querySelector("#btn-anim-quadratic");
+                if (btnAnimQuadratic) {
+                    btnAnimQuadratic.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        FormulaAnimator.start("trans", "quadratic");
+                    });
+                }
+            }, 100);
+        }
     }
 
     // ----------------------------------------------------
@@ -1120,6 +1621,48 @@ document.addEventListener("DOMContentLoaded", () => {
                     formula: "\\text{像的尺寸 } \\uparrow \\quad \\text{（像变大）}",
                     desc: "5. 动态规律 · 像变大：随着光屏不断向后倒退（像距变大），光折射后的会聚光束发散角变大，导致在光屏上接收到的实像尺寸也随之拉伸变大。这就是中考核心口诀：“物近像远像变大”的科学原理。"
                 }
+            ],
+            // 8. 一次函数口诀动画
+            "linear_trans": [
+                {
+                    formula: "y = kx \\quad (k > 0)",
+                    desc: "1. **k 定方向 (正比例)**：当斜率 $k > 0$ 时，直线从 left 下向 right 上倾斜，经过第一、三象限。此时 $y$ 随 $x$ 的增大而增大。"
+                },
+                {
+                    formula: "y = kx \\quad (k < 0)",
+                    desc: "2. **k 定方向 (反向倾斜)**：当斜率 $k < 0$ 时，直线从 left 上向 right 下倾斜，经过第二、四象限。此时 $y$ 随 $x$ 的增大而减小。"
+                },
+                {
+                    formula: "y = kx + b \\quad (b > 0)",
+                    desc: "3. **b 定截距 (向上平移)**：常数项 $b$ 是直线与 y 轴交点的纵坐标（即截距）。当 $b > 0$ 时，直线相当于 $y = kx$ 向上平移 $b$ 个单位，交 y 轴于正半轴。"
+                },
+                {
+                    formula: "y = kx + b \\quad (b < 0)",
+                    desc: "4. **b 定截距 (向下平移)**：当 $b < 0$ 时，直线相当于 $y = kx$ 向下平移 $|b|$ 个单位，交 y 轴于负半轴。中考必背：**上加下减**！"
+                }
+            ],
+            // 9. 二次函数“左同右异”开口变化动画
+            "quadratic_trans": [
+                {
+                    formula: "y = ax^2 \\quad (a > 0)",
+                    desc: "1. **开口方向**：二次项系数 $a$ 决定开口。当 $a > 0$ 时，抛物线开口向上，函数有最小值。且 $|a|$ 越大，抛物线开口越窄。"
+                },
+                {
+                    formula: "y = ax^2 \\quad (a < 0)",
+                    desc: "2. **开口向下**：当 $a < 0$ 时，抛物线开口向下，函数有最大值。$|a|$ 越小，抛物线越开阔平缓。"
+                },
+                {
+                    formula: "x = -\\frac{b}{2a} \\quad (ab > 0 \\implies \\text{对称轴在 y 轴左侧})",
+                    desc: "3. **左同（ab同号）**：当 $a$ 与 $b$ 同号（即 $ab > 0$）时，对称轴 $x = -\\frac{b}{2a} < 0$，因此抛物线的对称轴位于 y 轴的**左侧**。"
+                },
+                {
+                    formula: "x = -\\frac{b}{2a} \\quad (ab < 0 \\implies \\text{对称轴在 y 轴右侧})",
+                    desc: "4. **右异（ab异号）**：当 $a$ 与 $b$ 异号（即 $ab < 0$）时，对称轴 $x = -\\frac{b}{2a} > 0$，因此抛物线的对称轴位于 y 轴的**右侧**。"
+                },
+                {
+                    formula: "y = ax^2 + bx + c \\quad (c \\text{ 决定与 y 轴交点})",
+                    desc: "5. **c 定截距**：常数项 $c$ 决定了抛物线与 y 轴的交点坐标为 $(0, c)$。顶点坐标公式为 $(-\\frac{b}{2a}, \\frac{4ac-b^2}{4a})$。"
+                }
             ]
         },
         
@@ -1175,7 +1718,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 "ohms-law": "欧姆定律",
                 "specific-heat": "比热容热量公式",
                 "pythagorean_theorem": "直角三角形勾股定理",
-                "lens-imaging": "凸透镜成像规律"
+                "lens-imaging": "凸透镜成像规律",
+                "linear": "一次函数",
+                "quadratic": "二次函数"
             };
             const typeNames = {
                 "trans": "变形推导动画",
