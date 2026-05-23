@@ -18,6 +18,7 @@ const PHYSICS_DB = {
         // ================= 力学部分 =================
         {
             id: "speed",
+            imagePath: "images/illustrations/speed.png",
             category: "mechanics",
             title: "速度公式",
             symbolFormula: "v = \\frac{s}{t}",
@@ -427,6 +428,7 @@ const PHYSICS_DB = {
         // ================= 电学部分 =================
         {
             id: "ohms-law",
+            imagePath: "images/illustrations/ohms_law.png",
             category: "electricity",
             title: "欧姆定律",
             symbolFormula: "I = \\frac{U}{R}",
@@ -723,6 +725,7 @@ const PHYSICS_DB = {
         },
         {
             id: "lens-imaging",
+            imagePath: "images/illustrations/lens_imaging.png",
             category: "acoustics-optics",
             title: "凸透镜成像规律",
             symbolFormula: "\\text{成像口诀：一倍焦距分虚实，二倍焦距分大小}",

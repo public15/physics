@@ -36,6 +36,7 @@ const MATH_DB = {
         // ================= 一、数与式 =================
         {
             id: "square_difference",
+            imagePath: "images/illustrations/square_diff.png",
             category: "num-exp",
             title: "平方差公式",
             symbolFormula: "(a + b)(a - b) = a^2 - b^2",
@@ -340,6 +341,7 @@ const MATH_DB = {
         // ================= 三、几何与图形 =================
         {
             id: "pythagorean_theorem",
+            imagePath: "images/illustrations/pythagorean.png",
             category: "geom",
             title: "直角三角形勾股定理",
             symbolFormula: "a^2 + b^2 = c^2",
@@ -533,6 +535,7 @@ const MATH_DB = {
         },
         {
             id: "triangle_similarity",
+            imagePath: "images/illustrations/similarity.png",
             category: "geom",
             title: "相似三角形周长与面积比",
             symbolFormula: "\\triangle ABC \\sim \\triangle A'B'C' \\implies \\frac{C}{C'} = k, \\quad \\frac{S}{S'} = k^2",
@@ -619,6 +622,7 @@ const MATH_DB = {
         },
         {
             id: "polygon_angles",
+            imagePath: "images/illustrations/polygon_angles.png",
             category: "geom",
             title: "多边形内角和与外角和定理",
             symbolFormula: "S_{内} = (n - 2) \\times 180^\\circ, \\quad S_{外} = 360^\\circ",

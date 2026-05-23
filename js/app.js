@@ -487,6 +487,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     <!-- Tab 1: 定义 -->
                     <div class="tab-pane active" data-tab-pane="def">
                         <p class="definition-text">${f.definition}</p>
+                        ${f.imagePath ? `
+                            <div class="formula-illustration-container">
+                                <div class="skeleton-glow"></div>
+                                <img src="${f.imagePath}" alt="${f.title}原理图解" class="formula-illustration-img" onload="this.previousElementSibling.remove()">
+                            </div>
+                        ` : ''}
                         <div class="variables-title">变量与解读</div>
                         <ul class="variables-list">
                             ${f.variables.map(v => `
