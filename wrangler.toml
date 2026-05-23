@@ -1,10 +1,4 @@
 # Cloudflare Pages 部署配置文件
-# 可以通过执行 'npx wrangler pages deploy .' 一键将物理网页发布至 Cloudflare。
-
 name = "junior-physics-hub"
 compatibility_date = "2026-05-23"
-
-[pages_build_output_dir]
-# 由于我们开发的是纯前端静态 SPA 网页，项目根目录本身就是部署的静态资源目录
-# 在本地直接部署时，Wrangler 会将 index.html、css/、js/ 完整打包发布。
-directory = "."
+pages_build_output_dir = "."
