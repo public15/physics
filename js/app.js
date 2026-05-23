@@ -14,6 +14,9 @@ document.addEventListener("DOMContentLoaded", () => {
         searchQuery: ""                   // 全局搜索词
     };
 
+    // 题库本地会话缓存，防止频繁随机导致界面内容与打印版不一致
+    let questionCache = {};
+
     // ----------------------------------------------------
     // 2. DOM 元素缓存
     // ----------------------------------------------------
@@ -437,18 +440,32 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ----------------------------------------------------
-    // 8. 专项习题集动态渲染与交互
+// 8. 专项习题集动态渲染与交互
     // ----------------------------------------------------
     function renderPracticeQuestions() {
         DOM.exercisesList.innerHTML = "";
         
-        // 过滤题目：随侧边栏学科分支切换而切换！
-        const filteredQuestions = PHYSICS_DB.practiceQuestions.filter(q => {
-            return state.currentCategory === "all" || q.category === state.currentCategory;
-        });
+        const cat = state.currentCategory;
+        
+        // 如果该学科的 100 道题尚未生成，则调用智能引擎即时计算并写入缓存
+        if (!questionCache[cat]) {
+            if (cat === "all") {
+                // 组装一套综合题卷：35道力学，35道电学，20道热学，10道声光学 = 100道经典题
+                const mech = PHYSICS_ENGINE.generateQuestions("mechanics", 35);
+                const elec = PHYSICS_ENGINE.generateQuestions("electricity", 35);
+                const therm = PHYSICS_ENGINE.generateQuestions("thermodynamics", 20);
+                const acop = PHYSICS_ENGINE.generateQuestions("acoustics-optics", 10);
+                questionCache[cat] = [...mech, ...elec, ...therm, ...acop];
+            } else {
+                // 单独类别生成 100 道
+                questionCache[cat] = PHYSICS_ENGINE.generateQuestions(cat, 100);
+            }
+        }
 
+        const filteredQuestions = questionCache[cat];
+        
         // 统一更新试卷的学科名称
-        DOM.examCategoryName.textContent = PHYSICS_DB.categories[state.currentCategory];
+        DOM.examCategoryName.textContent = PHYSICS_DB.categories[cat];
 
         if (filteredQuestions.length === 0) {
             DOM.exercisesList.innerHTML = `
