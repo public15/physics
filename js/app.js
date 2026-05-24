@@ -2462,6 +2462,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
 
                         if (parseData && parseData.data && Array.isArray(parseData.data)) {
+                            // 给该页所有解析出的题目附加上原页截图数据，解决纯文字无图无法解题的问题
+                            parseData.data.forEach(q => {
+                                q.source_image = pdfImages[i];
+                            });
                             finalAiDataArray = finalAiDataArray.concat(parseData.data);
                         }
                         if (parseData && parseData.message) serverMsg = parseData.message;
@@ -2557,6 +2561,16 @@ document.addEventListener("DOMContentLoaded", () => {
                         <span class="score-badge">[AI 极速切片 ${i+1}]</span>
                         <span class="q-content">${q.question || q.content || q.title || q.text || q.body || `<span style="color:#ef4444; font-size:12px;">【题干提取失败，模型擅自修改了数据结构】<br>它的原始数据是: ${JSON.stringify(q)}</span>`}</span>
                     </div>
+                    ${q.source_image ? `
+                    <details class="no-print" style="margin-top: 10px; margin-bottom: 15px; border: 1px dashed #d1d5db; border-radius: 6px; padding: 8px 12px; background: #f9fafb; cursor: pointer;">
+                        <summary style="font-size: 13px; color: #4b5563; font-weight: 500; outline: none; user-select: none;">
+                            🖼️ 展开查看原卷本页配图 (如需参考几何图像等)
+                        </summary>
+                        <div style="margin-top: 12px; text-align: center;">
+                            <img src="${q.source_image}" style="max-width: 100%; border: 1px solid #e5e7eb; border-radius: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                        </div>
+                    </details>
+                    ` : ''}
                     ${(q.options && q.options.length > 0) ? `
                         <ul class="q-options-list" style="list-style:none; padding:0; margin:10px 0;">
                             ${q.options.map(opt => `<li style="margin-bottom:6px;">${opt}</li>`).join('')}
