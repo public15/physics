@@ -390,11 +390,26 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ----------------------------------------------------
-    // 5. 主题设置与本地持久化
+    // 5. 主题设置与自动化
     // ----------------------------------------------------
     function initTheme() {
-        const savedTheme = localStorage.getItem("physics-theme") || "theme-dark";
-        DOM.body.className = savedTheme;
+        const savedTheme = localStorage.getItem("physics-theme");
+        if (savedTheme) {
+            DOM.body.className = savedTheme;
+        } else {
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            DOM.body.className = prefersDark ? "theme-dark" : "theme-light";
+        }
+
+        // 监听操作系统级别的深浅模式切换
+        if (window.matchMedia) {
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                // 如果用户没有手动设定过主题，就自动跟随系统切换
+                if (!localStorage.getItem("physics-theme")) {
+                    DOM.body.className = e.matches ? "theme-dark" : "theme-light";
+                }
+            });
+        }
     }
 
     function toggleTheme() {
