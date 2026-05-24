@@ -2297,6 +2297,35 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
+        // 连通性测试逻辑
+        const testBtn = document.getElementById("testAiBtn");
+        const testRes = document.getElementById("testAiResult");
+        if (testBtn && testRes) {
+            testBtn.addEventListener("click", async () => {
+                testBtn.disabled = true;
+                testBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> 测试中...`;
+                testRes.textContent = "";
+                
+                try {
+                    const resp = await fetch("/api/test-ai");
+                    const data = await resp.json();
+                    
+                    if (data.status === "success") {
+                        testRes.innerHTML = `<span style="color: #10b981;">🟢 ${data.message} (回应: ${data.reply})</span>`;
+                    } else if (data.status === "warning") {
+                        testRes.innerHTML = `<span style="color: #f59e0b;">🟠 ${data.message}</span>`;
+                    } else {
+                        testRes.innerHTML = `<span style="color: #ef4444;">🔴 ${data.message}</span>`;
+                    }
+                } catch (e) {
+                    testRes.innerHTML = `<span style="color: #ef4444;">🔴 内部网络连接失败</span>`;
+                }
+                
+                testBtn.disabled = false;
+                testBtn.innerHTML = `<i class="fas fa-bolt"></i> 测试云端 AI 连通性`;
+            });
+        }
+
         // 真实 R2 极速流式直传架构及 AI 切片联动
         async function simulateUpload(file) {
             contentArea.classList.add("hidden");
