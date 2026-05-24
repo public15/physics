@@ -35,9 +35,11 @@ document.addEventListener("DOMContentLoaded", () => {
         btnShowHandbook: document.getElementById("btnShowHandbook"),
         btnShowPractice: document.getElementById("btnShowPractice"),
         btnShowConversions: document.getElementById("btnShowConversions"),
+        btnUploadSection: document.getElementById("btnUploadSection"),
         handbookSection: document.getElementById("handbookSection"),
         practiceSection: document.getElementById("practiceSection"),
         conversionsSection: document.getElementById("conversionsSection"),
+        uploadSection: document.getElementById("uploadSection"),
         
         // 侧边栏
         categoryList: document.getElementById("categoryList"),
@@ -1393,6 +1395,12 @@ document.addEventListener("DOMContentLoaded", () => {
             switchView("conversions");
         });
 
+        if (DOM.btnUploadSection) {
+            DOM.btnUploadSection.addEventListener("click", () => {
+                switchView("uploadSection");
+            });
+        }
+
         // D. 学科双雄切换监听
         const subjectTabs = DOM.subjectSwitcher.querySelectorAll(".subject-tab");
         subjectTabs.forEach(tab => {
@@ -1475,19 +1483,23 @@ document.addEventListener("DOMContentLoaded", () => {
     // SPA 视图切换
     function switchView(viewName) {
         state.currentView = viewName;
-        const allBtns = [DOM.btnShowHandbook, DOM.btnShowPractice, DOM.btnShowConversions];
-        const allSections = [DOM.handbookSection, DOM.practiceSection, DOM.conversionsSection];
+        const allBtns = [DOM.btnShowHandbook, DOM.btnShowPractice, DOM.btnShowConversions, DOM.btnUploadSection].filter(Boolean);
+        const allSections = [DOM.handbookSection, DOM.practiceSection, DOM.conversionsSection, DOM.uploadSection].filter(Boolean);
         allBtns.forEach(b => b.classList.remove("active"));
         allSections.forEach(s => s.classList.remove("active"));
+        
         if (viewName === "handbook") {
-            DOM.btnShowHandbook.classList.add("active");
-            DOM.handbookSection.classList.add("active");
+            DOM.btnShowHandbook && DOM.btnShowHandbook.classList.add("active");
+            DOM.handbookSection && DOM.handbookSection.classList.add("active");
         } else if (viewName === "practice") {
-            DOM.btnShowPractice.classList.add("active");
-            DOM.practiceSection.classList.add("active");
-        } else {
-            DOM.btnShowConversions.classList.add("active");
-            DOM.conversionsSection.classList.add("active");
+            DOM.btnShowPractice && DOM.btnShowPractice.classList.add("active");
+            DOM.practiceSection && DOM.practiceSection.classList.add("active");
+        } else if (viewName === "conversions") {
+            DOM.btnShowConversions && DOM.btnShowConversions.classList.add("active");
+            DOM.conversionsSection && DOM.conversionsSection.classList.add("active");
+        } else if (viewName === "uploadSection") {
+            DOM.btnUploadSection && DOM.btnUploadSection.classList.add("active");
+            DOM.uploadSection && DOM.uploadSection.classList.add("active");
         }
     }
 
@@ -2245,6 +2257,85 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
+    // ----------------------------------------------------
+    // 12. 智能上传交互系统 (PoC)
+    // ----------------------------------------------------
+    function initUploadSystem() {
+        const dropzone = document.getElementById("uploadDropzone");
+        if(!dropzone) return;
+
+        const browseBtn = document.getElementById("browseFileBtn");
+        const fileInput = document.getElementById("hiddenFileInput");
+        
+        const contentArea = dropzone.querySelector(".dropzone-content");
+        const progressArea = document.getElementById("uploadProgressContainer");
+        const progressBar = document.getElementById("uploadProgressBar");
+        const progressPercent = document.getElementById("uploadProgressPercent");
+        const statusText = document.getElementById("uploadStatusText");
+        
+        // 拖拽高亮
+        dropzone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropzone.classList.add("dragover");
+        });
+        dropzone.addEventListener("dragleave", () => {
+            dropzone.classList.remove("dragover");
+        });
+        dropzone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropzone.classList.remove("dragover");
+            if (e.dataTransfer.files.length > 0) {
+                simulateUpload(e.dataTransfer.files[0]);
+            }
+        });
+
+        // 按钮点击
+        browseBtn.addEventListener("click", () => fileInput.click());
+        fileInput.addEventListener("change", (e) => {
+            if (e.target.files.length > 0) {
+                simulateUpload(e.target.files[0]);
+            }
+        });
+
+        // 炫酷模拟上传进度动画
+        function simulateUpload(file) {
+            contentArea.classList.add("hidden");
+            progressArea.classList.remove("hidden");
+            
+            let progress = 0;
+            statusText.textContent = `正在提取 ${file.name} 中的纯文本和图片...`;
+            
+            const interval = setInterval(() => {
+                progress += Math.random() * 5;
+                if (progress > 30 && progress < 35) {
+                    statusText.textContent = "正在将文本块发送至 R1 深度推演中心...";
+                } else if (progress > 60 && progress < 65) {
+                    statusText.textContent = "R1 正在进行 LaTeX 纠正与题型分类...";
+                } else if (progress > 90) {
+                    statusText.textContent = "处理完毕！准备进入排版引擎...";
+                }
+                
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        alert("🎉 PoC 演示完毕！\n\n前端 UI 与交互已完成就绪。当后端 R1 服务搭建完毕后，此处的进度条将直接导向『专项习题』板块并自动渲染解析结果。");
+                        // 恢复原状
+                        progressArea.classList.add("hidden");
+                        contentArea.classList.remove("hidden");
+                        progressBar.style.width = "0%";
+                        progressPercent.textContent = "0%";
+                    }, 500);
+                }
+                
+                progressBar.style.width = `${Math.min(progress, 100)}%`;
+                progressPercent.textContent = `${Math.floor(Math.min(progress, 100))}%`;
+                
+            }, 100);
+        }
+    }
+
     // 执行初始化
     init();
+    setTimeout(initUploadSystem, 500);
 });

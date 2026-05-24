@@ -90,6 +90,10 @@
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3" cy="6" r="1" fill="currentColor"/><circle cx="3" cy="12" r="1" fill="currentColor"/><circle cx="3" cy="18" r="1" fill="currentColor"/></svg>
                     单位速查
                 </button>
+                <button class="switch-btn ai-tab-btn" id="btnUploadSection" data-target="uploadSection">
+                    <span class="icon" style="font-size:14px; margin-right:4px;">🤖</span>
+                    智能解析
+                </button>
             </div>
 
             <!-- Dark/Light Theme Toggle -->
@@ -259,6 +263,54 @@
                 </div>
                 <div class="conversions-grid" id="conversionsGrid">
                     <!-- Cards dynamically rendered by app.js -->
+                </div>
+            </section>
+
+            <!-- SECTION 4: AI 智能解析 (PoC) -->
+            <section class="content-section" id="uploadSection">
+                <div class="upload-header">
+                    <h2>大模型试卷解析引擎 (PoC)</h2>
+                    <p>支持原生 Word / PDF 极速提纯，彻底告别图片错位幻觉</p>
+                </div>
+                
+                <div class="upload-dropzone" id="uploadDropzone">
+                    <div class="dropzone-content">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <h3>拖拽试卷文件到此处，或点击浏览</h3>
+                        <p class="file-hint">支持 .docx, .pdf 格式</p>
+                        <button class="browse-btn" id="browseFileBtn">选择文件</button>
+                        <input type="file" id="hiddenFileInput" accept=".docx, .pdf" style="display: none;">
+                    </div>
+                    
+                    <div class="upload-progress-container hidden" id="uploadProgressContainer">
+                        <div class="parsing-animation">
+                            <div class="scanner-line"></div>
+                            <i class="fas fa-file-word file-scanning-icon"></i>
+                        </div>
+                        <h4 id="uploadStatusText">正在上传并交给 R1 分析中...</h4>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="uploadProgressBar"></div>
+                        </div>
+                        <p class="progress-percent" id="uploadProgressPercent">0%</p>
+                    </div>
+                </div>
+                
+                <div class="upload-features">
+                    <div class="feature-card">
+                        <i class="fas fa-brain"></i>
+                        <h4>R1 深度语义提纯</h4>
+                        <p>自动纠正 OCR 乱码并输出标准 LaTeX 公式</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-vector-square"></i>
+                        <h4>无损图文分离</h4>
+                        <p>保留最高清的原卷插图，精准对齐物理题干</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-print"></i>
+                        <h4>一键自由排版</h4>
+                        <p>解析完毕后无缝接入现有的定制排版引擎</p>
+                    </div>
                 </div>
             </section>
         </main>

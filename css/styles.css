@@ -2687,3 +2687,177 @@ body {
     height: 14px;
     cursor: pointer;
 }
+
+/* =====================================================
+   11. AI 智能上传解析模块样式
+   ===================================================== */
+.ai-tab-btn {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%) !important;
+    border: 1px solid rgba(139, 92, 246, 0.3) !important;
+    color: var(--accent-color) !important;
+}
+.ai-tab-btn.active {
+    background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+}
+
+.upload-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+.upload-header h2 {
+    font-size: 28px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 10px;
+}
+.upload-header p {
+    color: var(--text-secondary);
+    font-size: 15px;
+}
+
+.upload-dropzone {
+    background: var(--bg-card);
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 60px 40px;
+    text-align: center;
+    transition: all var(--transition-normal);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 40px;
+    box-shadow: var(--card-shadow);
+}
+.upload-dropzone.dragover {
+    border-color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.05);
+    transform: scale(1.02);
+}
+
+.dropzone-content .upload-icon {
+    font-size: 64px;
+    color: var(--accent-color);
+    margin-bottom: 20px;
+    opacity: 0.8;
+}
+.dropzone-content h3 {
+    font-size: 20px;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+}
+.dropzone-content .file-hint {
+    color: var(--text-secondary);
+    margin-bottom: 25px;
+    font-size: 14px;
+}
+
+.browse-btn {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+.browse-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+/* 进度条动画 */
+.upload-progress-container {
+    padding: 20px 0;
+}
+.parsing-animation {
+    position: relative;
+    width: 80px;
+    height: 100px;
+    margin: 0 auto 20px auto;
+}
+.file-scanning-icon {
+    font-size: 80px;
+    color: var(--text-muted);
+}
+.scanner-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: #8b5cf6;
+    box-shadow: 0 0 10px #8b5cf6, 0 0 20px #8b5cf6;
+    animation: scan 2s linear infinite;
+}
+@keyframes scan {
+    0% { top: 0; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+}
+
+#uploadStatusText {
+    font-size: 16px;
+    color: var(--text-primary);
+    margin-bottom: 15px;
+}
+.progress-bar-bg {
+    width: 80%;
+    max-width: 400px;
+    height: 8px;
+    background: var(--bg-pill);
+    border-radius: 4px;
+    margin: 0 auto 10px auto;
+    overflow: hidden;
+}
+.progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    border-radius: 4px;
+    transition: width 0.1s linear;
+}
+.progress-percent {
+    font-weight: bold;
+    color: #8b5cf6;
+}
+
+.upload-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+.feature-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 25px 20px;
+    text-align: center;
+    transition: all var(--transition-fast);
+}
+.feature-card:hover {
+    border-color: #8b5cf6;
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+.feature-card i {
+    font-size: 32px;
+    color: #8b5cf6;
+    margin-bottom: 15px;
+}
+.feature-card h4 {
+    font-size: 16px;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+}
+.feature-card p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
