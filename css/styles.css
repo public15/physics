@@ -1252,7 +1252,7 @@ body {
         color: #000000 !important;
         font-size: 10.5pt !important;
         line-height: 1.5 !important;
-        padding: 15mm !important; /* 取代 @page margin，防止浏览器打印默认页眉页脚 */
+        /* padding removed to allow browser default margins */
     }
 
     /* =====================================================
@@ -1264,7 +1264,6 @@ body {
     aside,
     .app-sidebar,
     .section-header,
-    .exam-header-block,
     .card-tabs-nav,
     .calc-actions,
     .calc-inputs-container,
@@ -1310,7 +1309,7 @@ body {
        ===================================================== */
     @page {
         size: A4 portrait;
-        margin: 0 !important;
+        margin: 18mm 15mm 20mm 15mm;
     }
 
     /* =====================================================
