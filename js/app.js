@@ -2337,16 +2337,16 @@ document.addEventListener("DOMContentLoaded", () => {
             let images = [];
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
-                // 采用 1.2 倍缩放，在保证公式清晰的前提下，大幅减少 GPT-4o 的高频瓦片切割数，防止其耗时过长导致 524
-                const viewport = page.getViewport({ scale: 1.2 });
+                // 采用 1.0 倍缩放，0.6 压缩率，实现极限体积压缩，彻底防止由于 Payload 过大导致的浏览器底层网络截断 (Failed to fetch)
+                const viewport = page.getViewport({ scale: 1.0 });
                 const canvas = document.createElement("canvas");
                 const context = canvas.getContext("2d");
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
                 
                 await page.render({ canvasContext: context, viewport: viewport }).promise;
-                // 转为 JPEG 以降低发送给 API 的体积压力
-                images.push(canvas.toDataURL("image/jpeg", 0.8));
+                // 转为 JPEG 以降低发送给 API 的体积压力，极限压缩
+                images.push(canvas.toDataURL("image/jpeg", 0.6));
             }
             return images;
         }
@@ -2477,7 +2477,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 }, 800);
 
             } catch(e) {
-                statusText.textContent = `AI 唤醒失败: ${e.message}`;
+                let msg = e.message;
+                if (msg.includes("Failed to fetch")) {
+                    msg += " (浏览器底层网络中断。由于多模态传输压力巨大，这通常是因为您的本地网络发生了抖动或瞬间上传体积过大导致防火墙掐断。我们已进一步压降了图像画质，请再试一次)";
+                }
+                statusText.textContent = `AI 唤醒失败: ${msg}`;
                 statusText.style.color = "#ef4444";
                 setTimeout(() => resetUploadUI(), 5000);
             }
