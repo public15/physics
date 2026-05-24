@@ -2462,9 +2462,36 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
 
                         if (parseData && parseData.data && Array.isArray(parseData.data)) {
-                            // 给该页所有解析出的题目附加上原页截图数据，解决纯文字无图无法解题的问题
+                            // 端云协同切图技术：加载当前页原图，根据大模型估算的垂直高度百分比，进行零成本前端切图
+                            const sourceBase64 = pdfImages[i];
+                            const imgObj = new Image();
+                            imgObj.src = sourceBase64;
+                            await new Promise(r => { imgObj.onload = r; });
+
                             parseData.data.forEach(q => {
-                                q.source_image = pdfImages[i];
+                                q.source_image = sourceBase64;
+                                // 检查是否有大模型估算的高度区间 (0-100)
+                                if (typeof q.image_y_start === 'number' && typeof q.image_y_end === 'number' && q.image_y_end > q.image_y_start) {
+                                    try {
+                                        // 垂直向外扩展 2% 作为容差，防止大模型切得太紧导致首尾文字被切破
+                                        const yStartPercent = Math.max(0, q.image_y_start - 2);
+                                        const yEndPercent = Math.min(100, q.image_y_end + 2);
+                                        
+                                        const cropCanvas = document.createElement("canvas");
+                                        cropCanvas.width = imgObj.width;
+                                        cropCanvas.height = imgObj.height * (yEndPercent - yStartPercent) / 100;
+                                        const ctx = cropCanvas.getContext("2d");
+                                        
+                                        ctx.drawImage(
+                                            imgObj, 
+                                            0, imgObj.height * yStartPercent / 100, imgObj.width, cropCanvas.height,
+                                            0, 0, cropCanvas.width, cropCanvas.height
+                                        );
+                                        q.cropped_image = cropCanvas.toDataURL("image/jpeg", 0.85);
+                                    } catch (err) {
+                                        console.warn("切图失败：", err);
+                                    }
+                                }
                             });
                             finalAiDataArray = finalAiDataArray.concat(parseData.data);
                         }
@@ -2561,10 +2588,15 @@ document.addEventListener("DOMContentLoaded", () => {
                         <span class="score-badge">[AI 极速切片 ${i+1}]</span>
                         <span class="q-content">${q.question || q.content || q.title || q.text || q.body || `<span style="color:#ef4444; font-size:12px;">【题干提取失败，模型擅自修改了数据结构】<br>它的原始数据是: ${JSON.stringify(q)}</span>`}</span>
                     </div>
+                    ${q.cropped_image ? `
+                    <div class="q-cropped-img" style="margin: 12px 0; text-align: center;">
+                        <img src="${q.cropped_image}" style="max-width: 100%; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb;">
+                    </div>
+                    ` : ''}
                     ${q.source_image ? `
                     <details class="no-print" style="margin-top: 10px; margin-bottom: 15px; border: 1px dashed #d1d5db; border-radius: 6px; padding: 8px 12px; background: #f9fafb; cursor: pointer;">
                         <summary style="font-size: 13px; color: #4b5563; font-weight: 500; outline: none; user-select: none;">
-                            🖼️ 展开查看原卷本页配图 (如需参考几何图像等)
+                            ${q.cropped_image ? '🖼️ 图片被截断了？点击展开查看原卷本页配图全貌' : '🖼️ 展开查看原卷本页配图 (如需参考几何图像等)'}
                         </summary>
                         <div style="margin-top: 12px; text-align: center;">
                             <img src="${q.source_image}" style="max-width: 100%; border: 1px solid #e5e7eb; border-radius: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
