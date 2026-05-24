@@ -1204,10 +1204,34 @@ body {
     /* =====================================================
        1. 全局重置：纯白底、纯黑字、去除所有渐变与阴影
        ===================================================== */
-    /* economy = browser omits bg colors to save ink (B&W printer friendly) */
     html, body {
-        -webkit-print-color-adjust: economy !important;
-        print-color-adjust: economy !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* 强制重置所有主题变量为纯白底/黑字，消除任何暗黑模式带来的隐形底色 */
+    :root, .theme-dark, .theme-light {
+        --bg-app: #ffffff !important;
+        --bg-body: #ffffff !important;
+        --bg-card: #ffffff !important;
+        --bg-header: transparent !important;
+        --bg-sidebar: transparent !important;
+        --bg-input: #ffffff !important;
+        --border-color: #000000 !important;
+        --border-color-focus: #000000 !important;
+        --text-primary: #000000 !important;
+        --text-secondary: #000000 !important;
+        --text-muted: #333333 !important;
+        --accent-gradient: none !important;
+        --accent-color: #000000 !important;
+        --accent-secondary: #000000 !important;
+        --accent-glow: transparent !important;
+        --card-shadow: none !important;
+        --card-shadow-hover: none !important;
+        --math-box-bg: transparent !important;
+        --calculator-result-bg: transparent !important;
+        --bg-pill: transparent !important;
+        --bg-pill-active: transparent !important;
     }
 
     *,
@@ -1218,14 +1242,17 @@ body {
         background-color: transparent !important;
         box-shadow: none !important;
         text-shadow: none !important;
+        border-color: #000000 !important;
     }
 
     body {
         background: #ffffff !important;
+        background-color: #ffffff !important;
         background-image: none !important;
         color: #000000 !important;
         font-size: 10.5pt !important;
         line-height: 1.5 !important;
+        padding: 15mm !important; /* 取代 @page margin，防止浏览器打印默认页眉页脚 */
     }
 
     /* =====================================================
@@ -1233,7 +1260,11 @@ body {
        ===================================================== */
     .no-print,
     header,
+    .app-header,
     aside,
+    .app-sidebar,
+    .section-header,
+    .exam-header-block,
     .card-tabs-nav,
     .calc-actions,
     .calc-inputs-container,
@@ -1252,6 +1283,10 @@ body {
         visibility: hidden !important;
         max-height: 0 !important;
         overflow: hidden !important;
+        opacity: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
     }
 
     /* =====================================================
@@ -1259,11 +1294,13 @@ body {
        ===================================================== */
     .app-container {
         margin-top: 0 !important;
+        padding-top: 0 !important;
         display: block !important;
+        min-height: auto !important;
     }
 
     .app-main-content {
-        margin-left: 0 !important;
+        margin: 0 !important;
         padding: 0 !important;
         width: 100% !important;
     }
@@ -1273,7 +1310,7 @@ body {
        ===================================================== */
     @page {
         size: A4 portrait;
-        margin: 18mm 15mm 20mm 15mm;
+        margin: 0 !important;
     }
 
     /* =====================================================
@@ -1322,7 +1359,6 @@ body {
     /* category tag / badge */
     .category-tag,
     .badge,
-    .score-badge,
     .anim-badge {
         border: 1px solid #000000 !important;
         color: #000000 !important;
@@ -1489,7 +1525,7 @@ body {
         margin-bottom: 20px !important;
     }
 
-    .question-card * {
+    .question-card *:not(.score-badge) {
         color: #000000 !important;
         -webkit-text-fill-color: #000000 !important;
     }
@@ -1531,10 +1567,11 @@ body {
     }
 
     body.print-student-mode .calculation-space {
+        display: block !important;
         background: transparent !important;
-        border: 1.5px dashed #000000 !important;
-        height: 180px !important;
-        color: #888888 !important;
+        border: none !important;
+        height: 250px !important;
+        color: transparent !important;
     }
 
     .print-fill-blank {
@@ -1592,7 +1629,7 @@ body {
         color: #000000 !important;
         -webkit-text-fill-color: #000000 !important;
     }
-}�基于当前的“打印设置”控制解析的显示或隐藏 */
+}基于当前的“打印设置”控制解析的显示或隐藏 */
     /* 教师版：完全渲染解析 */
     body.print-teacher-mode .exam-solution-block {
         display: block !important;

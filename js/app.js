@@ -407,6 +407,20 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // 监听打印事件，强制在打印时应用白天模式（防止黑白打印机导出时受夜间模式 CSS 变量污染）
+    window.addEventListener("beforeprint", () => {
+        state.wasDarkBeforePrint = DOM.body.classList.contains("theme-dark");
+        if (state.wasDarkBeforePrint) {
+            DOM.body.className = "theme-light";
+        }
+    });
+
+    window.addEventListener("afterprint", () => {
+        if (state.wasDarkBeforePrint) {
+            DOM.body.className = "theme-dark";
+        }
+    });
+
     // ----------------------------------------------------
     // 6. 侧边栏数字徽标更新
     // ----------------------------------------------------
@@ -1176,7 +1190,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <!-- 学生版答题留空区域 -->
                 <div class="student-space ${state.printMode === "student" ? "active" : ""}">
                     ${q.type === "calculation" ? `
-                        <div class="calculation-space no-print">—— 请在纸张打印版中写出公式与计算步骤 ——</div>
+                        <div class="calculation-space">—— 请在纸张打印版中写出公式与计算步骤 ——</div>
                     ` : `
                         <div style="height: 10px; width: 100%;"></div>
                     `}
