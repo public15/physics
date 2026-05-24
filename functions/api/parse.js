@@ -1,0 +1,135 @@
+/**
+ * Cloudflare Pages Function: 接收前端剥离出的纯文本，调用大模型进行题干与公式的结构化提纯
+ * 路由： /api/parse
+ */
+
+export async function onRequestPost(context) {
+    const { request, env } = context;
+    
+    try {
+        const body = await request.json();
+        const rawText = body.text;
+
+        if (!rawText || rawText.trim() === '') {
+            return new Response(JSON.stringify({ error: "文本内容为空" }), { status: 400 });
+        }
+
+        // 大模型系统提示词
+        const systemPrompt = `
+你是一个极度严谨的物理试题结构化切分专家。
+用户会发送给你一段通过 OCR 或 Mammoth.js 从试卷中提取的纯文本。这其中包含了乱码、题干、选项和可能的公式杂音。
+你的任务是：
+1. 过滤掉无用的乱码和试卷页眉页脚头文件。
+2. 识别每一道独立的物理题（通常以数字序号开头）。
+3. 将公式全部规范化为标准的 LaTeX 语法。
+4. 严格按照下方的 JSON 数组格式输出（除了 JSON 字符串，不要输出任何其他的啰嗦废话或 markdown 标记）：
+
+[
+  {
+    "id": "q1",
+    "type": "choice", // choice (选择题) 或 fill (填空题) 或 calculation (计算题)
+    "question": "题干的纯净文本...",
+    "options": ["A. 选项1", "B. 选项2"], // 如果不是选择题则不填
+    "answer": "如果是已知答案则填入，否则留空",
+    "solution": "解析内容"
+  }
+]
+`;
+
+        // 如果没有配置真实 API KEY，为了不影响前台开发体验，直接返回一条极其逼真的 Mock 数据
+        if (!env.DEEPSEEK_API_KEY) {
+            console.warn("未检测到 DEEPSEEK_API_KEY，使用 Mock 大模型数据进行后置排版链路测试");
+            const mockJSON = [
+                {
+                    "id": "ai_mock_1",
+                    "type": "choice",
+                    "question": "一辆智能汽车以 $v = 25m/s$ 的速度在平直公路上匀速行驶，司机突然发现前方 $d=50m$ 处有障碍物并紧急刹车，刹车时的加速度大小为 $a=5m/s^2$。若司机的反应时间为 $t=0.5s$，则下列说法正确的是：",
+                    "options": [
+                        "A. 汽车在反应时间内行驶的距离为 $12.5m$",
+                        "B. 汽车刹车过程的位移为 $50m$",
+                        "C. 汽车最终会撞上障碍物",
+                        "D. 汽车距离障碍物最近时还有 $5m$"
+                    ],
+                    "answer": "A",
+                    "solution": "反应时间内的位移 $x_1 = v \\times t = 25 \\times 0.5 = 12.5m$。制动位移 $x_2 = \\frac{v^2}{2a} = \\frac{625}{10} = 62.5m$。总位移 $x = 12.5 + 62.5 = 75m > 50m$，必定撞上。故选 A。但等等... 这个排版是不是很帅？"
+                },
+                {
+                    "id": "ai_mock_2",
+                    "type": "calculation",
+                    "question": "如图所示的电路中，电源电压保持不变，电阻 $R_1=10\\Omega$。当开关 $S$ 闭合时，电流表的示数为 $0.6A$；若将开关 $S$ 断开，电流表的示数变为 $0.2A$。求：\n(1) 电源电压 $U$ 的大小；\n(2) 电阻 $R_2$ 的阻值。",
+                    "answer": "",
+                    "solution": "由开关断开、闭合可知串并联结构，欧姆定律即得。"
+                }
+            ];
+
+            // 模拟大模型推理的延迟时间
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            return new Response(JSON.stringify({
+                success: true,
+                message: "【系统提示】这是通过 Mock 数据返回的结果（因云端未配置 DEEPSEEK_API_KEY）",
+                data: mockJSON
+            }), {
+                status: 200,
+                headers: { "Content-Type": "application/json" }
+            });
+        }
+
+        // 真实的大模型请求 (这里以 DeepSeek API 为例，兼容 OpenAI API)
+        const aiResponse = await fetch("https://api.deepseek.com/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${env.DEEPSEEK_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: "deepseek-chat", // 使用 deepseek-chat 或 deepseek-reasoner
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: rawText }
+                ],
+                temperature: 0.1 // 极低的温度保证输出 JSON 的严谨性
+            })
+        });
+
+        if (!aiResponse.ok) {
+            const errBody = await aiResponse.text();
+            throw new Error(`大模型服务接口响应异常: ${aiResponse.status} - ${errBody}`);
+        }
+
+        const aiData = await aiResponse.json();
+        const content = aiData.choices[0].message.content;
+        
+        // 尝试从 markdown 代码块中提取 JSON
+        let jsonStr = content;
+        if (content.includes("```json")) {
+            jsonStr = content.split("```json")[1].split("```")[0].trim();
+        } else if (content.includes("```")) {
+            jsonStr = content.split("```")[1].split("```")[0].trim();
+        }
+        
+        let parsedData;
+        try {
+            parsedData = JSON.parse(jsonStr);
+        } catch(e) {
+            throw new Error("大模型未能返回合法的 JSON 格式数据");
+        }
+
+        return new Response(JSON.stringify({
+            success: true,
+            message: "大模型深度推演并切片完成！",
+            data: parsedData
+        }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" }
+        });
+
+    } catch (err) {
+        return new Response(JSON.stringify({ 
+            error: "解析过程发生异常: " + err.message 
+        }), { 
+            status: 500,
+            headers: { "Content-Type": "application/json" }
+        });
+    }
+}
