@@ -34,8 +34,10 @@ document.addEventListener("DOMContentLoaded", () => {
         // SPA 视图切换
         btnShowHandbook: document.getElementById("btnShowHandbook"),
         btnShowPractice: document.getElementById("btnShowPractice"),
+        btnShowConversions: document.getElementById("btnShowConversions"),
         handbookSection: document.getElementById("handbookSection"),
         practiceSection: document.getElementById("practiceSection"),
+        conversionsSection: document.getElementById("conversionsSection"),
         
         // 侧边栏
         categoryList: document.getElementById("categoryList"),
@@ -381,6 +383,7 @@ document.addEventListener("DOMContentLoaded", () => {
         updateCategoryBadges();
         renderFormulas();
         renderPracticeQuestions();
+        renderConversions();
         bindEvents();
         initLightbox();
         FormulaAnimator.init();
@@ -1344,6 +1347,10 @@ document.addEventListener("DOMContentLoaded", () => {
             switchView("practice");
         });
 
+        DOM.btnShowConversions.addEventListener("click", () => {
+            switchView("conversions");
+        });
+
         // D. 学科双雄切换监听
         const subjectTabs = DOM.subjectSwitcher.querySelectorAll(".subject-tab");
         subjectTabs.forEach(tab => {
@@ -1426,17 +1433,226 @@ document.addEventListener("DOMContentLoaded", () => {
     // SPA 视图切换
     function switchView(viewName) {
         state.currentView = viewName;
+        const allBtns = [DOM.btnShowHandbook, DOM.btnShowPractice, DOM.btnShowConversions];
+        const allSections = [DOM.handbookSection, DOM.practiceSection, DOM.conversionsSection];
+        allBtns.forEach(b => b.classList.remove("active"));
+        allSections.forEach(s => s.classList.remove("active"));
         if (viewName === "handbook") {
             DOM.btnShowHandbook.classList.add("active");
-            DOM.btnShowPractice.classList.remove("active");
             DOM.handbookSection.classList.add("active");
-            DOM.practiceSection.classList.remove("active");
-        } else {
-            DOM.btnShowHandbook.classList.remove("active");
+        } else if (viewName === "practice") {
             DOM.btnShowPractice.classList.add("active");
-            DOM.handbookSection.classList.remove("active");
             DOM.practiceSection.classList.add("active");
+        } else {
+            DOM.btnShowConversions.classList.add("active");
+            DOM.conversionsSection.classList.add("active");
         }
+    }
+
+    // ----------------------------------------------------
+    // 单位换算速查：数据 & 渲染
+    // ----------------------------------------------------
+    const UNIT_CONVERSIONS_DATA = [
+        {
+            id: "speed", icon: "🚀", title: "速度", color: "#60a5fa",
+            items: [
+                { from: "1 m/s", to: "3.6 km/h", star: true },
+                { from: "1 km/h", to: "5/18 m/s ≈ 0.278 m/s", star: true },
+                { from: "声速（空气 15℃）", to: "≈ 340 m/s", star: true },
+                { from: "声速（水中）", to: "≈ 1500 m/s", star: false },
+                { from: "声速（铁中）", to: "≈ 5200 m/s", star: false },
+                { from: "光速 c（真空）", to: "3×10⁸ m/s", star: true },
+            ]
+        },
+        {
+            id: "length", icon: "📏", title: "长度", color: "#34d399",
+            items: [
+                { from: "1 km", to: "1000 m = 10³ m", star: true },
+                { from: "1 m", to: "100 cm = 1000 mm", star: true },
+                { from: "1 cm", to: "10 mm = 10⁻² m", star: true },
+                { from: "1 mm", to: "1000 μm = 10⁻³ m", star: false },
+                { from: "1 μm（微米）", to: "1000 nm = 10⁻⁶ m", star: false },
+                { from: "1 nm（纳米）", to: "10⁻⁹ m", star: false },
+                { from: "1 光年", to: "≈ 9.46×10¹⁵ m", star: false },
+                { from: "地球半径", to: "≈ 6.4×10⁶ m", star: false },
+            ]
+        },
+        {
+            id: "time", icon: "⏱️", title: "时间", color: "#a78bfa",
+            items: [
+                { from: "1 h（小时）", to: "60 min = 3600 s", star: true },
+                { from: "1 min（分钟）", to: "60 s", star: true },
+                { from: "1 d（天）", to: "24 h = 1440 min = 86400 s", star: false },
+                { from: "1 ms（毫秒）", to: "10⁻³ s", star: false },
+                { from: "1 μs（微秒）", to: "10⁻⁶ s", star: false },
+            ]
+        },
+        {
+            id: "mass", icon: "⚖️", title: "质量", color: "#f59e0b",
+            items: [
+                { from: "1 t（吨）", to: "1000 kg = 10³ kg", star: true },
+                { from: "1 kg（千克）", to: "1000 g", star: true },
+                { from: "1 g（克）", to: "1000 mg = 10⁻³ kg", star: true },
+                { from: "1 mg（毫克）", to: "10⁻⁶ kg = 10⁻³ g", star: false },
+            ]
+        },
+        {
+            id: "force", icon: "💪", title: "力", color: "#f87171",
+            items: [
+                { from: "1 N（牛顿）", to: "1 kg·m/s²", star: true },
+                { from: "1 kN（千牛）", to: "1000 N = 10³ N", star: true },
+                { from: "1 MN（兆牛）", to: "10⁶ N", star: false },
+                { from: "1 N", to: "≈ 0.102 kgf（千克力）", star: false },
+                { from: "1 kgf（千克力）", to: "≈ 9.8 N", star: false },
+            ]
+        },
+        {
+            id: "pressure", icon: "🌬️", title: "压强", color: "#fb923c",
+            items: [
+                { from: "1 Pa（帕斯卡）", to: "1 N/m²", star: true },
+                { from: "1 kPa（千帕）", to: "1000 Pa = 10³ Pa", star: true },
+                { from: "1 MPa（兆帕）", to: "10⁶ Pa", star: false },
+                { from: "1 标准大气压 atm", to: "101325 Pa ≈ 1.013×10⁵ Pa", star: true },
+                { from: "1 atm", to: "760 mmHg（毫米汞柱）", star: false },
+                { from: "中考近似大气压", to: "≈ 1.0×10⁵ Pa", star: true },
+            ]
+        },
+        {
+            id: "energy", icon: "⚡", title: "功与能量", color: "#fbbf24",
+            items: [
+                { from: "1 J（焦耳）", to: "1 N·m = 1 kg·m²/s²", star: true },
+                { from: "1 kJ（千焦）", to: "1000 J = 10³ J", star: true },
+                { from: "1 MJ（兆焦）", to: "10⁶ J", star: false },
+                { from: "1 kW·h（度电）", to: "3.6×10⁶ J = 3600 kJ", star: true },
+                { from: "1 cal（卡路里）", to: "≈ 4.2 J", star: true },
+                { from: "1 kcal（千卡/大卡）", to: "4200 J = 4.2 kJ", star: true },
+                { from: "1 eV（电子伏特）", to: "1.6×10⁻¹⁹ J", star: false },
+            ]
+        },
+        {
+            id: "power", icon: "🔋", title: "功率", color: "#4ade80",
+            items: [
+                { from: "1 W（瓦特）", to: "1 J/s = 1 kg·m²/s³", star: true },
+                { from: "1 kW（千瓦）", to: "1000 W = 10³ W", star: true },
+                { from: "1 MW（兆瓦）", to: "10⁶ W", star: false },
+                { from: "1 马力（hp）", to: "≈ 735.5 W ≈ 0.736 kW", star: false },
+            ]
+        },
+        {
+            id: "voltage", icon: "🔌", title: "电压", color: "#38bdf8",
+            items: [
+                { from: "1 kV（千伏）", to: "1000 V = 10³ V", star: true },
+                { from: "1 mV（毫伏）", to: "10⁻³ V = 0.001 V", star: false },
+                { from: "1 μV（微伏）", to: "10⁻⁶ V", star: false },
+                { from: "家庭电路电压", to: "220 V（中国标准）", star: true },
+                { from: "安全电压上限", to: "≤ 36 V", star: true },
+            ]
+        },
+        {
+            id: "current", icon: "〜", title: "电流", color: "#818cf8",
+            items: [
+                { from: "1 A（安培）", to: "1000 mA", star: true },
+                { from: "1 mA（毫安）", to: "1000 μA = 10⁻³ A", star: true },
+                { from: "1 μA（微安）", to: "10⁻⁶ A", star: false },
+            ]
+        },
+        {
+            id: "resistance", icon: "🔧", title: "电阻", color: "#c084fc",
+            items: [
+                { from: "1 kΩ（千欧）", to: "1000 Ω = 10³ Ω", star: true },
+                { from: "1 MΩ（兆欧）", to: "10⁶ Ω = 1000 kΩ", star: true },
+            ]
+        },
+        {
+            id: "temperature", icon: "🌡️", title: "温度", color: "#f472b6",
+            items: [
+                { from: "T（开尔文 K）", to: "= t℃ + 273.15", star: true },
+                { from: "0℃", to: "= 273.15 K", star: true },
+                { from: "100℃（水沸点）", to: "= 373.15 K", star: false },
+                { from: "绝对零度", to: "0 K = −273.15℃", star: true },
+                { from: "人体正常体温", to: "≈ 37℃ = 310.15 K", star: false },
+            ]
+        },
+        {
+            id: "volume", icon: "🧪", title: "体积", color: "#2dd4bf",
+            items: [
+                { from: "1 m³", to: "1000 L = 10³ dm³ = 10⁶ cm³", star: true },
+                { from: "1 L（升）", to: "1 dm³ = 1000 cm³ = 1000 mL", star: true },
+                { from: "1 cm³", to: "1 mL = 10⁻⁶ m³", star: true },
+            ]
+        },
+        {
+            id: "area", icon: "▭", title: "面积", color: "#94a3b8",
+            items: [
+                { from: "1 km²", to: "10⁶ m² = 100 公顷", star: false },
+                { from: "1 m²", to: "10⁴ cm² = 10⁶ mm²", star: true },
+                { from: "1 cm²", to: "100 mm² = 10⁻⁴ m²", star: true },
+                { from: "1 公顷（ha）", to: "10⁴ m² = 0.01 km²", star: false },
+            ]
+        },
+        {
+            id: "density", icon: "🧱", title: "密度", color: "#fb7185",
+            items: [
+                { from: "1 g/cm³", to: "1000 kg/m³ = 10³ kg/m³", star: true },
+                { from: "1 kg/m³", to: "0.001 g/cm³ = 10⁻³ g/cm³", star: false },
+                { from: "水 ρ_水", to: "1.0×10³ kg/m³ = 1 g/cm³", star: true },
+                { from: "水银 ρ_汞", to: "13.6×10³ kg/m³ = 13.6 g/cm³", star: true },
+                { from: "冰 ρ_冰", to: "0.9×10³ kg/m³ = 0.9 g/cm³", star: false },
+                { from: "空气（常温）", to: "≈ 1.29 kg/m³", star: false },
+                { from: "铁", to: "7.9×10³ kg/m³ = 7.9 g/cm³", star: false },
+                { from: "铝", to: "2.7×10³ kg/m³ = 2.7 g/cm³", star: false },
+                { from: "铜", to: "8.9×10³ kg/m³ = 8.9 g/cm³", star: false },
+            ]
+        },
+        {
+            id: "heat", icon: "🔥", title: "热学常数", color: "#ff7849",
+            items: [
+                { from: "水的比热容 c_水", to: "4.2×10³ J/(kg·℃)", star: true },
+                { from: "冰的比热容 c_冰", to: "2.1×10³ J/(kg·℃)", star: false },
+                { from: "铁的比热容 c_铁", to: "0.46×10³ J/(kg·℃)", star: false },
+                { from: "铝的比热容 c_铝", to: "0.88×10³ J/(kg·℃)", star: false },
+                { from: "水的蒸发热", to: "≈ 2.26×10⁶ J/kg", star: false },
+                { from: "冰的熔化热", to: "≈ 3.36×10⁵ J/kg", star: false },
+                { from: "1 cal（卡路里）", to: "≈ 4.187 J", star: true },
+                { from: "1 kcal（大卡）", to: "≈ 4187 J ≈ 4.2 kJ", star: true },
+            ]
+        },
+        {
+            id: "constants", icon: "📐", title: "重要物理常数", color: "#e879f9",
+            items: [
+                { from: "重力加速度 g", to: "≈ 9.8 N/kg（中考取 10 N/kg）", star: true },
+                { from: "光速 c（真空）", to: "≈ 3×10⁸ m/s", star: true },
+                { from: "声速（空气 15℃）", to: "≈ 340 m/s", star: true },
+                { from: "标准大气压 p₀", to: "≈ 1.013×10⁵ Pa（中考取 1.0×10⁵ Pa）", star: true },
+                { from: "水的密度 ρ_水", to: "1.0×10³ kg/m³", star: true },
+                { from: "电子电荷量 e", to: "1.6×10⁻¹⁹ C", star: false },
+                { from: "质子质量", to: "≈ 1.67×10⁻²⁷ kg", star: false },
+                { from: "阿伏加德罗常数 Nₐ", to: "≈ 6.02×10²³ mol⁻¹", star: false },
+            ]
+        },
+    ];
+
+    function renderConversions() {
+        const grid = document.getElementById("conversionsGrid");
+        if (!grid) return;
+        grid.innerHTML = UNIT_CONVERSIONS_DATA.map(cat => `
+            <div class="conv-card" style="--cat-color: ${cat.color}">
+                <div class="conv-card-header">
+                    <span class="conv-card-icon">${cat.icon}</span>
+                    <h3 class="conv-card-title">${cat.title}</h3>
+                </div>
+                <ul class="conv-list">
+                    ${cat.items.map(item => `
+                        <li class="conv-item${item.star ? ' conv-star' : ''}">
+                            <span class="conv-from">${item.from}</span>
+                            <span class="conv-arrow">→</span>
+                            <span class="conv-to">${item.to}</span>
+                            ${item.star ? '<span class="conv-star-dot" title="中考常考">⭐</span>' : ''}
+                        </li>
+                    `).join('')}
+                </ul>
+            </div>
+        `).join('');
     }
 
     // 习题打印配置切换

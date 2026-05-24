@@ -1200,36 +1200,26 @@ body {
     .switch-btn {
         padding: 4px 10px;
         font-size: 12px;
-    }
-    .floating-print-btn {
-        bottom: 20px;
-        right: 20px;
-        width: 48px;
-        height: 48px;
-    }
-    .practice-control-header {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 16px;
-    }
-    .practice-action-bar {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .print-mode-panel {
-        justify-content: space-between;
-    }
-    .exam-sheet-container {
-        padding: 20px;
-    }
-    .exam-main-title {
-        font-size: 20px;
-    }
-}
-
-/* ================= 9. @media print 打印机与 A4 PDF 导出排版样式 ================= */
 @media print {
-    /* 1. 基础重置：纯白底色、纯黑文字，去除阴影 */
+    /* =====================================================
+       1. 全局重置：纯白底、纯黑字、去除所有渐变与阴影
+       ===================================================== */
+    /* economy = browser omits bg colors to save ink (B&W printer friendly) */
+    html, body {
+        -webkit-print-color-adjust: economy !important;
+        print-color-adjust: economy !important;
+    }
+
+    *,
+    *::before,
+    *::after {
+        background: transparent !important;
+        background-image: none !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+
     body {
         background: #ffffff !important;
         background-image: none !important;
@@ -1237,8 +1227,10 @@ body {
         font-size: 10.5pt !important;
         line-height: 1.5 !important;
     }
-    
-    /* 2. 隐藏所有的非打印组件 */
+
+    /* =====================================================
+       2. 隐藏所有非打印组件
+       ===================================================== */
     .no-print,
     header,
     aside,
@@ -1248,99 +1240,130 @@ body {
     .view-solution-btn,
     .clear-search,
     .floating-print-btn,
-    .loading-overlay {
+    .loading-overlay,
+    .img-lightbox,
+    .animation-modal,
+    .skeleton-glow,
+    .formula-illustration-container,
+    .anim-trigger-btn,
+    .function-graph-lab,
+    .conv-star-dot {
         display: none !important;
+        visibility: hidden !important;
+        max-height: 0 !important;
+        overflow: hidden !important;
     }
-    
-    /* 3. 伸缩主内容容器，消除外边距 */
+
+    /* =====================================================
+       3. 布局：消除侧边栏，全宽显示
+       ===================================================== */
     .app-container {
         margin-top: 0 !important;
         display: block !important;
     }
-    
+
     .app-main-content {
         margin-left: 0 !important;
         padding: 0 !important;
         width: 100% !important;
     }
-    
-    /* 4. 纸张页面及页边距设置 (标准 A4 纵向) */
+
+    /* =====================================================
+       4. 纸张设置 (A4 纵向)
+       ===================================================== */
     @page {
         size: A4 portrait;
         margin: 18mm 15mm 20mm 15mm;
     }
-    
-    /* 5. 公式手册打印视图优化 */
+
+    /* =====================================================
+       5. 公式手册打印视图
+       ===================================================== */
     #handbookSection.active {
         display: block !important;
     }
-    
-    /* 打印公式手册时，将卡片网格重置为单列排列 */
+
     .formulas-grid {
         display: flex !important;
         flex-direction: column !important;
         gap: 20px !important;
     }
-    
+
     .formula-card {
         background: #ffffff !important;
         border: 1px solid #000000 !important;
         box-shadow: none !important;
-        page-break-inside: avoid !important; /* 避免在卡片中间被截断跨页 */
+        page-break-inside: avoid !important;
         transform: none !important;
         border-radius: 8px !important;
         display: block !important;
     }
-    
-    .card-header {
+
+    /* 卡片 header —— 渐变色 → 纯白 */
+    .card-header,
+    .card-header::before,
+    .card-header::after {
+        background: #ffffff !important;
+        background-image: none !important;
         border-bottom: 1px solid #000000 !important;
         padding: 10px 15px !important;
     }
-    
-    .card-title {
+
+    .card-title,
+    .card-title * {
         color: #000000 !important;
         font-size: 14pt !important;
+        -webkit-text-fill-color: #000000 !important;
+        background: none !important;
+        background-clip: unset !important;
+        -webkit-background-clip: unset !important;
     }
-    
-    .category-tag {
+
+    /* category tag / badge */
+    .category-tag,
+    .badge,
+    .score-badge,
+    .anim-badge {
         border: 1px solid #000000 !important;
         color: #000000 !important;
         background: transparent !important;
     }
-    
+
+    /* 公式展示框 */
     .formula-display-box {
-        background: #f8f9fa !important;
+        background: transparent !important;
+        border: 1px solid #000000 !important;
         border-bottom: 1px solid #000000 !important;
         padding: 15px !important;
         font-size: 20px !important;
     }
-    
-    /* 在打印视图下，直接展示卡片的全部有用 Tab 内容，不用标签按钮切换！ */
+
+    /* Tab 内容 */
     .card-tab-content {
         padding: 12px 15px !important;
         display: block !important;
     }
-    
-    /* 显示必要的 Tab */
+
     .tab-pane {
         display: block !important;
         margin-bottom: 16px !important;
         opacity: 1 !important;
         transform: none !important;
     }
-    
-    /* 隐藏计算器 Tab 的输入框 */
+
+    /* 隐藏计算器 Tab */
     .tab-pane:nth-child(3) {
-        display: none !important; /* 隐藏计算器界面，计算器无打印价值 */
+        display: none !important;
     }
-    
-    /* 给打印排版添加标签前缀，显得像公式百科 */
+
+    /* Tab 标题前缀 */
     .tab-pane:nth-child(1)::before {
         content: "【核心定义与物理量】";
         font-weight: bold;
         font-size: 11pt;
         display: block;
         margin-bottom: 6px;
+        color: #000000 !important;
     }
 
     .tab-pane:nth-child(2)::before {
@@ -1349,58 +1372,85 @@ body {
         font-size: 11pt;
         display: block;
         margin-bottom: 6px;
+        color: #000000 !important;
     }
-    
+
     .tab-pane:nth-child(4)::before {
         content: "【典型例题解析】";
         font-weight: bold;
         font-size: 11pt;
         display: block;
         margin-bottom: 6px;
+        color: #000000 !important;
     }
 
     .definition-text {
         color: #000000 !important;
         font-size: 10pt !important;
     }
-    
+
     .variable-row {
         border-bottom: 0.5px dashed #000000 !important;
         color: #000000 !important;
+        background: transparent !important;
     }
-    
-    .var-symbol {
+
+    .var-symbol,
+    .var-symbol * {
         color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+        background: none !important;
+        -webkit-background-clip: unset !important;
     }
-    
+
     .var-unit {
-        border: 1.5px solid #000000 !important;
+        border: 1px solid #000000 !important;
         background: transparent !important;
         color: #000000 !important;
     }
-    
+
     .trans-item {
-        background: #f8f9fa !important;
+        background: transparent !important;
         border: 0.5px solid #000000 !important;
         color: #000000 !important;
     }
-    
+
+    .trans-item * {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+        background: none !important;
+    }
+
     .example-question {
         font-size: 10pt !important;
+        color: #000000 !important;
     }
-    
+
     .solution-container {
         display: block !important;
-        background: #f8f9fa !important;
+        background: transparent !important;
         border: 0.5px solid #000000 !important;
         padding: 10px !important;
     }
-    
-    /* 6. 专项习题集打印视图优化 */
+
+    /* math-box / 公式背景色 */
+    .math-box,
+    .math-result-box,
+    .calc-result-display,
+    .graph-formula-show,
+    .anim-viewport {
+        background: transparent !important;
+        border: 1px solid #000000 !important;
+        color: #000000 !important;
+    }
+
+    /* =====================================================
+       6. 专项习题打印视图
+       ===================================================== */
     #practiceSection.active {
         display: block !important;
     }
-    
+
     .exam-sheet-container {
         background: #ffffff !important;
         border: none !important;
@@ -1408,35 +1458,141 @@ body {
         padding: 0 !important;
         width: 100% !important;
     }
-    
+
     .exam-header-block {
+        background: transparent !important;
         border-bottom: 3px double #000000 !important;
         margin-bottom: 30px !important;
     }
-    
+
     .exam-main-title {
         color: #000000 !important;
         font-size: 20pt !important;
+        -webkit-text-fill-color: #000000 !important;
+        background: none !important;
     }
-    
+
     .exam-meta-info,
-    .student-info-fields {
+    .student-info-fields,
+    .meta-item,
+    .info-field {
         color: #000000 !important;
         font-size: 10pt !important;
+        background: transparent !important;
     }
-    
+
     .question-card {
-        page-break-inside: avoid !important; /* 避免题目中间跨页截断 */
+        background: transparent !important;
+        page-break-inside: avoid !important;
         border-bottom: 1.5px solid #000000 !important;
         padding-bottom: 20px !important;
         margin-bottom: 20px !important;
     }
-    
+
+    .question-card * {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+    }
+
     .question-title-row {
         font-size: 11pt !important;
+        background: transparent !important;
     }
-    
-    /* 在打印视图下，基于当前的“打印设置”控制解析的显示或隐藏 */
+
+    /* 教师版解析 */
+    body.print-teacher-mode .exam-solution-block {
+        display: block !important;
+        background: transparent !important;
+        border: 1px solid #000000 !important;
+        padding: 12px !important;
+        margin-top: 15px !important;
+        page-break-inside: avoid !important;
+        color: #000000 !important;
+    }
+
+    body.print-teacher-mode .exam-solution-block * {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+        background: transparent !important;
+    }
+
+    body.print-teacher-mode .student-space {
+        display: none !important;
+    }
+
+    /* 学生版 */
+    body.print-student-mode .exam-solution-block {
+        display: none !important;
+    }
+
+    body.print-student-mode .student-space {
+        display: block !important;
+        background: transparent !important;
+    }
+
+    body.print-student-mode .calculation-space {
+        background: transparent !important;
+        border: 1.5px dashed #000000 !important;
+        height: 180px !important;
+        color: #888888 !important;
+    }
+
+    .print-fill-blank {
+        text-decoration: underline !important;
+        font-weight: bold;
+        color: #000000 !important;
+    }
+
+    /* =====================================================
+       7. 单位换算速查打印视图
+       ===================================================== */
+    #conversionsSection.active {
+        display: block !important;
+    }
+
+    .conversions-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    .conv-card {
+        background: #ffffff !important;
+        border: 1px solid #000000 !important;
+        page-break-inside: avoid !important;
+    }
+
+    .conv-card::before {
+        display: none !important;
+    }
+
+    .conv-card-header {
+        background: transparent !important;
+        border-bottom: 1px solid #000000 !important;
+    }
+
+    .conv-card-title {
+        color: #000000 !important;
+    }
+
+    .conv-item {
+        background: transparent !important;
+        border-bottom: 0.5px solid #cccccc !important;
+        color: #000000 !important;
+    }
+
+    .conv-item.conv-star {
+        background: transparent !important;
+        font-weight: 600;
+    }
+
+    .conv-from,
+    .conv-to,
+    .conv-arrow {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+    }
+}�基于当前的“打印设置”控制解析的显示或隐藏 */
     /* 教师版：完全渲染解析 */
     body.print-teacher-mode .exam-solution-block {
         display: block !important;
@@ -2299,3 +2455,163 @@ body {
         background-position: 0% 50%;
     }
 }
+
+/* ================= 13. 单位换算速查手册 ================= */
+.conversions-page-header {
+    padding: 0 0 20px 0;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 28px;
+}
+
+.conversions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 18px;
+    padding-bottom: 40px;
+}
+
+/* 单张换算卡片 */
+.conv-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+    position: relative;
+}
+
+.conv-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--cat-color, var(--accent-color));
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.conv-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18),
+                0 0 0 1px var(--cat-color, var(--accent-color)) inset;
+}
+
+/* 卡片 header */
+.conv-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.conv-card-icon {
+    font-size: 20px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.conv-card-title {
+    font-family: var(--font-heading);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--cat-color, var(--accent-color));
+    margin: 0;
+}
+
+/* 换算列表 */
+.conv-list {
+    list-style: none;
+    padding: 8px 0;
+    margin: 0;
+}
+
+.conv-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 16px;
+    font-size: 12.5px;
+    line-height: 1.4;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    transition: background var(--transition-fast);
+}
+
+.conv-item:last-child {
+    border-bottom: none;
+}
+
+.conv-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* 中考常考星标行 */
+.conv-item.conv-star {
+    background: linear-gradient(90deg,
+        rgba(168, 85, 247, 0.05) 0%,
+        transparent 100%);
+}
+
+.conv-item.conv-star:hover {
+    background: linear-gradient(90deg,
+        rgba(168, 85, 247, 0.1) 0%,
+        rgba(168, 85, 247, 0.03) 100%);
+}
+
+.conv-from {
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 0;
+    flex: 1 1 auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.conv-arrow {
+    color: var(--cat-color, var(--accent-color));
+    font-size: 13px;
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+
+.conv-to {
+    color: var(--text-secondary);
+    font-family: 'Outfit', var(--font-primary);
+    flex: 1.4 1 0;
+    font-size: 12px;
+}
+
+.conv-star-dot {
+    font-size: 10px;
+    flex-shrink: 0;
+    opacity: 0.75;
+}
+
+/* 浅色主题适配 */
+.theme-light .conv-card {
+    background: #ffffff;
+}
+
+.theme-light .conv-card-header {
+    background: rgba(0, 0, 0, 0.015);
+}
+
+.theme-light .conv-item.conv-star {
+    background: linear-gradient(90deg,
+        rgba(124, 58, 237, 0.05) 0%,
+        transparent 100%);
+}
+
+.theme-light .conv-item:hover {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+@media (max-width: 600px) {
+    .conversions-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
