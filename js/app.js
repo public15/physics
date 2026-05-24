@@ -2589,7 +2589,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
             `;
             
-            list.innerHTML = aiBanner + htmlStr + list.innerHTML;
+            // 彻底清空列表里的占位物理旧题，插入全新的 AI 数据！
+            list.innerHTML = aiBanner + htmlStr;
+            
+            // 动态修改顶部的试卷标题和副标题，去掉“物理”字眼，以免造成误解
+            const mainTitle = document.querySelector(".exam-main-title");
+            if (mainTitle) mainTitle.textContent = "大模型智能解析试卷";
+            
+            const subTitle = document.querySelector(".exam-sub-title");
+            if (subTitle) {
+                // 将原有的 "物理板块：全部板块" 替换为更通用的信息
+                subTitle.innerHTML = `<span>智能解析试卷</span> <span>组卷时间：${new Date().toLocaleDateString()}</span> <span>满分：100分</span>`;
+            }
             
             // 重要：让 KaTeX 重新渲染新插入 DOM 中的公式！
             if (typeof renderMathInElement === 'function') {
