@@ -2326,6 +2326,25 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
 
+        // 配置 PDF.js worker
+        if (window.pdfjsLib) {
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        }
+
+        // 纯前端极速提取 PDF 文字层
+        async function extractTextFromPDF(arrayBuffer) {
+            const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let text = "";
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                // 将每页的文字碎片用空格连接起来
+                const pageText = textContent.items.map(item => item.str).join(" ");
+                text += pageText + "\n";
+            }
+            return text;
+        }
+
         // 真实 R2 极速流式直传架构及 AI 切片联动
         async function simulateUpload(file) {
             contentArea.classList.add("hidden");
@@ -2354,12 +2373,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
                     rawText = result.value;
                 } else if (file.name.toLowerCase().endsWith(".pdf")) {
-                    // PDF 留作后续功能
-                    rawText = "【模拟一段物理试题文本，由于未装载 pdf.js，使用降级策略...】\n1. 一辆智能汽车以 v=25m/s 的速度在公路上行驶...";
-                    statusText.textContent = "注意：暂未内置 PDF 前端提取，正使用兼容模式发往大模型...";
-                    await new Promise(r => setTimeout(r, 1000));
+                    statusText.textContent = "正在调用浏览器算力级 PDF 引擎剥离文本层...";
+                    const arrayBuffer = await file.arrayBuffer();
+                    rawText = await extractTextFromPDF(arrayBuffer);
+                    
+                    if (!rawText || rawText.trim().length === 0) {
+                        throw new Error("未能从该 PDF 中提取到任何可编辑文字！请确保这不是一份纯图片的扫描版 PDF。");
+                    }
                 } else {
-                    throw new Error("当前系统为了保证无损提纯，仅支持 .docx 文件！");
+                    throw new Error("当前系统为了保证提纯质量，仅支持 .docx 与 .pdf 文件！");
                 }
             } catch(e) {
                 statusText.textContent = `文件提纯失败: ${e.message}`;
