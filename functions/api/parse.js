@@ -25,21 +25,23 @@ export async function onRequestPost(context) {
 
 **极其关键的纪律：**
 1. 绝对不要寒暄！绝对不要说“这是一份试卷”、“你要我解答吗”等任何废话！
-2. 你的整个输出必须是一个以 \`[\` 开头，以 \`]\` 结尾的 JSON 数组！
+2. 为了保证数据完美解析，你**必须**输出一个 JSON 对象 (JSON Object)，并且这个对象**必须包含一个名为 \`questions\` 的键**，它的值是一个包含了所有题目的 JSON 数组。
 3. 在 JSON 字符串中，所有 LaTeX 的反斜杠必须使用双斜杠进行转义（例如 "\\\\frac{1}{2}"）。
 
-请遵循以下数据结构输出：
+请严格遵循以下 JSON 对象格式输出：
 
-[
-  {
-    "id": "q1",
-    "type": "choice", // choice (选择题) 或 fill (填空题) 或 calculation (计算题)
-    "question": "题干的纯净文本...",
-    "options": ["A. 选项1", "B. 选项2"], // 如果不是选择题则不填
-    "answer": "如果是已知答案则填入，否则留空",
-    "solution": "解析内容"
-  }
-]
+{
+  "questions": [
+    {
+      "id": "q1",
+      "type": "choice", // choice (选择题) 或 fill (填空题) 或 calculation (计算题)
+      "question": "题干的纯净文本...",
+      "options": ["A. 选项1", "B. 选项2"], // 如果不是选择题则不填
+      "answer": "如果是已知答案则填入，否则留空",
+      "solution": "解析内容"
+    }
+  ]
+}
 `;
 
         // 如果没有配置真实 API KEY，为了不影响前台开发体验，直接返回一条极其逼真的 Mock 数据
@@ -112,6 +114,7 @@ export async function onRequestPost(context) {
             },
             body: JSON.stringify({
                 model: modelName, 
+                response_format: { type: "json_object" }, // 强制大模型底层输出合法 JSON 对象
                 messages: [
                     { role: "system", content: systemPrompt },
                     { role: "user", content: userMessageContent }
@@ -126,39 +129,35 @@ export async function onRequestPost(context) {
         }
 
         const aiData = await aiResponse.json();
-        const content = aiData.choices[0].message.content;
+        let content = aiData.choices[0].message.content;
         
-        // 尝试从 markdown 代码块中提取 JSON
-        let jsonStr = content;
-        if (content.includes("```json")) {
-            jsonStr = content.split("```json")[1].split("```")[0].trim();
-        } else if (content.includes("```")) {
-            jsonStr = content.split("```")[1].split("```")[0].trim();
-        } else {
-            // 暴力截取：寻找第一个 [ 和最后一个 ]
-            const firstBracket = content.indexOf('[');
-            const lastBracket = content.lastIndexOf(']');
-            if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
-                jsonStr = content.substring(firstBracket, lastBracket + 1);
-            } else {
-                throw new Error("大模型拒绝输出 JSON，甚至连数组括号都没有，可能把任务当成了普通的闲聊。");
+        // 开启了 json_object 之后，大模型必定输出合法的 JSON 字符串
+        let parsedData;
+        try {
+            parsedData = JSON.parse(content);
+        } catch(e) {
+            throw new Error(`无法解析模型返回的 JSON (${e.message})。返回的原始内容片段: ${content.substring(0, 100)}...`);
+        }
+
+        // 获取 questions 数组，如果模型没按照规范叫 questions，我们尝试获取任意第一个数组类型的值
+        let questionsArray = parsedData.questions;
+        if (!questionsArray || !Array.isArray(questionsArray)) {
+            // 兜底找任意的 Array
+            for (let key in parsedData) {
+                if (Array.isArray(parsedData[key])) {
+                    questionsArray = parsedData[key];
+                    break;
+                }
             }
         }
         
-        let parsedData;
-        try {
-            // 如果模型确实忘了转义，做一次兜底的暴力替换（把单斜杠换成双斜杠，但不影响已经转义的换行等）
-            // 这是处理大模型 LaTex 最经典的黑科技补丁
-            let sanitizedStr = jsonStr.replace(/\\(?!["\\/bfnrt])/g, "\\\\");
-            parsedData = JSON.parse(sanitizedStr);
-        } catch(e) {
-            throw new Error(`无法解析模型返回的 JSON (${e.message})。返回的原始内容片段: ${jsonStr.substring(0, 100)}...`);
+        if (!questionsArray) {
+             throw new Error("大模型返回的数据中未找到任何题目数组结构。");
         }
 
         return new Response(JSON.stringify({
             success: true,
-            message: "大模型深度推演并切片完成！",
-            data: parsedData
+            data: questionsArray
         }), {
             status: 200,
             headers: { "Content-Type": "application/json" }
