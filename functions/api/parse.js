@@ -16,13 +16,14 @@ export async function onRequestPost(context) {
 
         // 大模型系统提示词
         const systemPrompt = `
-你是一个极度严谨的无情的数据转换 API，不是一个聊天机器人。
-用户会发送给你一段通过 OCR 从试卷中提取的纯文本。
+你是一个极度严谨的、无情的 OCR 数据结构化转换 API，绝对不是一个聊天机器人或家庭教师。
+用户的意图仅仅是让你**把零散的文本格式化为 JSON**，而不是让你去解答题目！
+你绝对不要去算答案！绝对不要问用户需要什么帮助！
 你的唯一任务是：提取出里面所有的物理/数学试题，并将公式全部规范化为标准的 LaTeX 语法。
 然后，将提取的题目严格组装成一个 JSON 数组格式并输出。
 
 **极其关键的纪律：**
-1. 绝对不要寒暄！绝对不要说“这是一份试卷”、“我能帮你做什么”等任何废话！
+1. 绝对不要寒暄！绝对不要说“这是一份试卷”、“你要我解答吗”等任何废话！
 2. 你的整个输出必须是一个以 \`[\` 开头，以 \`]\` 结尾的 JSON 数组！
 3. 在 JSON 字符串中，所有 LaTeX 的反斜杠必须使用双斜杠进行转义（例如 "\\\\frac{1}{2}"）。
 
@@ -93,9 +94,9 @@ export async function onRequestPost(context) {
                 model: modelName, 
                 messages: [
                     { role: "system", content: systemPrompt },
-                    { role: "user", content: rawText }
+                    { role: "user", content: `请将以下位于 <<< 和 >>> 之间的试卷文本严格提取为 JSON 数组。记住你的角色是无情的数据格式化器，不要解答试题！不要问候！只要 JSON！\n\n<<<\n${rawText}\n>>>` }
                 ],
-                temperature: 0.1 // 极低的温度保证输出 JSON 的严谨性
+                temperature: 0.01 // 极其逼近 0 的温度，消除任何创造性聊天的冲动
             })
         });
 
@@ -119,6 +120,8 @@ export async function onRequestPost(context) {
             const lastBracket = content.lastIndexOf(']');
             if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
                 jsonStr = content.substring(firstBracket, lastBracket + 1);
+            } else {
+                throw new Error("大模型拒绝输出 JSON，甚至连数组括号都没有，可能把任务当成了普通的闲聊。");
             }
         }
         
