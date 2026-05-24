@@ -20,8 +20,8 @@ export async function onRequestPost(context) {
 用户会发送给你一段通过 OCR 或 Mammoth.js 从试卷中提取的纯文本。这其中包含了乱码、题干、选项和可能的公式杂音。
 你的任务是：
 1. 过滤掉无用的乱码和试卷页眉页脚头文件。
-2. 识别每一道独立的物理题（通常以数字序号开头）。
-3. 将公式全部规范化为标准的 LaTeX 语法。
+2. 识别每一道独立的题目（通常以数字序号开头）。
+3. 将公式全部规范化为标准的 LaTeX 语法。**【极其关键】在 JSON 字符串中，所有 LaTeX 的反斜杠必须使用双斜杠进行转义！例如必须输出为 "\\\\frac{1}{2}" 而绝对不能是 "\\frac{1}{2}"，否则会导致 JSON.parse 致命崩溃！**
 4. 严格按照下方的 JSON 数组格式输出（除了 JSON 字符串，不要输出任何其他的啰嗦废话或 markdown 标记）：
 
 [
@@ -113,9 +113,12 @@ export async function onRequestPost(context) {
         
         let parsedData;
         try {
-            parsedData = JSON.parse(jsonStr);
+            // 如果模型确实忘了转义，做一次兜底的暴力替换（把单斜杠换成双斜杠，但不影响已经转义的换行等）
+            // 这是处理大模型 LaTex 最经典的黑科技补丁
+            let sanitizedStr = jsonStr.replace(/\\(?!["\\/bfnrt])/g, "\\\\");
+            parsedData = JSON.parse(sanitizedStr);
         } catch(e) {
-            throw new Error("大模型未能返回合法的 JSON 格式数据");
+            throw new Error(`无法解析模型返回的 JSON (${e.message})。返回的原始内容片段: ${jsonStr.substring(0, 100)}...`);
         }
 
         return new Response(JSON.stringify({
