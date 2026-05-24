@@ -131,39 +131,31 @@ export async function onRequestPost(context) {
         const aiData = await aiResponse.json();
         let content = aiData.choices[0].message.content;
         
-        // 尽管开启了 json_object，部分模型依然会固执地在外面套一层 markdown 代码块
         let cleanContent = content;
-        if (cleanContent.includes("```json")) {
-            cleanContent = cleanContent.split("```json")[1].split("```")[0].trim();
-        } else if (cleanContent.includes("```")) {
-            cleanContent = cleanContent.split("```")[1].split("```")[0].trim();
-        }
-
-        // 终极防御 1：有些模型喜欢用 Markdown 引用格式（每行以 > 开头）包裹 JSON
-        cleanContent = cleanContent.replace(/^>\s*/gm, '');
-
-        // 终极防御 2：提取最外层的 JSON 结构（可能是 {} 或 []）
-        const firstBrace = cleanContent.indexOf('{');
-        const lastBrace = cleanContent.lastIndexOf('}');
-        const firstBracket = cleanContent.indexOf('[');
-        const lastBracket = cleanContent.lastIndexOf(']');
         
+        // 终极防御：针对智能体(Agent)套壳中转站——大模型甚至会自己写代码跑 OCR 并在输出里包含多个 ```python 和 ```shell 代码块！
+        // 绝对不能用 split("```") 否则会截错代码块。
+        // 我们利用最核心的特征锚点 `{"questions":` 来作为 JSON 起始点寻找
         let startIdx = -1;
-        let endIdx = -1;
-        
-        // 比较哪个结构在最外面
-        if (firstBrace !== -1 && lastBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) {
-            startIdx = firstBrace;
-            endIdx = lastBrace;
-        } else if (firstBracket !== -1 && lastBracket !== -1) {
-            startIdx = firstBracket;
-            endIdx = lastBracket;
+        const match = cleanContent.match(/\{\s*"questions"\s*:/);
+        if (match) {
+            startIdx = match.index;
+        } else {
+            // 兜底策略：找最后一个出现的 ```json 中的 {，或者直接找第一个 {
+            const lastJsonCodeBlock = cleanContent.lastIndexOf('```json');
+            if (lastJsonCodeBlock !== -1) {
+                startIdx = cleanContent.indexOf('{', lastJsonCodeBlock);
+            } else {
+                startIdx = cleanContent.indexOf('{');
+            }
         }
+        
+        const endIdx = cleanContent.lastIndexOf('}');
 
         if (startIdx !== -1 && endIdx !== -1 && endIdx >= startIdx) {
             cleanContent = cleanContent.substring(startIdx, endIdx + 1);
         } else {
-             throw new Error(`大模型未返回JSON结构！疑似被风控或故障。原始输出: ${content}`);
+             throw new Error(`大模型被彻底干扰或未返回JSON结构！原始输出: ${content}`);
         }
         
         let parsedData;
