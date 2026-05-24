@@ -131,10 +131,17 @@ export async function onRequestPost(context) {
         const aiData = await aiResponse.json();
         let content = aiData.choices[0].message.content;
         
-        // 开启了 json_object 之后，大模型必定输出合法的 JSON 字符串
+        // 尽管开启了 json_object，部分模型依然会固执地在外面套一层 markdown 代码块
+        let cleanContent = content;
+        if (cleanContent.includes("```json")) {
+            cleanContent = cleanContent.split("```json")[1].split("```")[0].trim();
+        } else if (cleanContent.includes("```")) {
+            cleanContent = cleanContent.split("```")[1].split("```")[0].trim();
+        }
+        
         let parsedData;
         try {
-            parsedData = JSON.parse(content);
+            parsedData = JSON.parse(cleanContent);
         } catch(e) {
             throw new Error(`无法解析模型返回的 JSON (${e.message})。返回的原始内容片段: ${content.substring(0, 100)}...`);
         }
