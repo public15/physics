@@ -2410,27 +2410,55 @@ document.addEventListener("DOMContentLoaded", () => {
                     // 分治策略：由于多模态处理极慢，一次性发多页极易导致 Cloudflare 100s 524 超时
                     // 必须一页一页串行发给后端，并在前端聚合数据
                     for (let i = 0; i < pdfImages.length; i++) {
-                        statusText.textContent = `正在利用多模态视觉引擎进行深度推演 (第 ${i+1} 页 / 共 ${pdfImages.length} 页)...`;
-                        const parseResp = await fetch("/api/parse", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ images: [pdfImages[i]] }) // 每次只发单页
-                        });
+                        let success = false;
+                        let retryCount = 0;
+                        const maxRetries = 2;
+                        let parseData = null;
 
-                        if (!parseResp.ok) {
-                            let serverError = "未知服务器错误";
+                        while (!success && retryCount <= maxRetries) {
                             try {
-                                const errJson = await parseResp.json();
-                                serverError = errJson.error || serverError;
-                            } catch(e) {}
-                            throw new Error(`第 ${i+1} 页识别失败: (${parseResp.status}) ` + serverError);
+                                if (retryCount === 0) {
+                                    statusText.textContent = `正在利用多模态视觉引擎进行深度推演 (第 ${i+1} 页 / 共 ${pdfImages.length} 页)...`;
+                                } else {
+                                    statusText.textContent = `第 ${i+1} 页推演触碰云端限流或超时，正在进行第 ${retryCount} 次极速重试...`;
+                                }
+
+                                const parseResp = await fetch("/api/parse", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ images: [pdfImages[i]] }) // 每次只发单页
+                                });
+
+                                if (!parseResp.ok) {
+                                    let serverError = "未知服务器错误";
+                                    try {
+                                        const errJson = await parseResp.json();
+                                        serverError = errJson.error || serverError;
+                                    } catch(e) {}
+                                    
+                                    if (parseResp.status === 524) {
+                                        throw new Error("524 Timeout");
+                                    }
+                                    throw new Error(`第 ${i+1} 页识别失败: (${parseResp.status}) ` + serverError);
+                                }
+
+                                parseData = await parseResp.json();
+                                success = true;
+
+                            } catch (err) {
+                                if ((err.message.includes("524 Timeout") || err.message.includes("Failed to fetch")) && retryCount < maxRetries) {
+                                    retryCount++;
+                                    await new Promise(r => setTimeout(r, 2000)); // 休息2秒后重试
+                                } else {
+                                    throw err;
+                                }
+                            }
                         }
 
-                        const parseData = await parseResp.json();
-                        if (parseData.data && Array.isArray(parseData.data)) {
+                        if (parseData && parseData.data && Array.isArray(parseData.data)) {
                             finalAiDataArray = finalAiDataArray.concat(parseData.data);
                         }
-                        if (parseData.message) serverMsg = parseData.message;
+                        if (parseData && parseData.message) serverMsg = parseData.message;
                         
                         // 更新进度条
                         const currentProgress = 50 + Math.floor(((i + 1) / pdfImages.length) * 40);
