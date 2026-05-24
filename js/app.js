@@ -2450,7 +2450,13 @@ document.addEventListener("DOMContentLoaded", () => {
                                     retryCount++;
                                     await new Promise(r => setTimeout(r, 2000)); // 休息2秒后重试
                                 } else {
-                                    throw err;
+                                    // 彻底降级容灾：如果某页死活算不出来（超越了 100s 或者代理彻底挂了），我们不抛出异常阻断大循环！
+                                    // 而是记录错误，跳过该页，继续抢救其他页面的数据！
+                                    console.error(`第 ${i+1} 页解析灾难性失败:`, err);
+                                    statusText.textContent = `第 ${i+1} 页试题过于复杂或遭遇算力黑洞，已跳过，正在强行推进...`;
+                                    statusText.style.color = "#f59e0b"; // 橙色警告
+                                    await new Promise(r => setTimeout(r, 3000));
+                                    break; // 跳出 while 重试循环，继续外层的 for 循环
                                 }
                             }
                         }
