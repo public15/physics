@@ -116,6 +116,7 @@ export async function onRequestPost(context) {
             body: JSON.stringify({
                 model: modelName, 
                 response_format: { type: "json_object" }, // 强制大模型底层输出合法 JSON 对象
+                stream: true, // 开启流式响应，强迫中转站在几秒内立刻返回 Headers，彻底打破 Cloudflare 100s 524 TTFB 超时魔咒
                 messages: [
                     { role: "system", content: systemPrompt },
                     { role: "user", content: userMessageContent }
@@ -129,10 +130,38 @@ export async function onRequestPost(context) {
             throw new Error(`大模型服务接口响应异常: ${aiResponse.status} - ${errBody}`);
         }
 
-        const aiData = await aiResponse.json();
-        let content = aiData.choices[0].message.content;
-        
-        let cleanContent = content;
+        // 读取并拼接流式 SSE 数据
+        let fullContent = "";
+        try {
+            const reader = aiResponse.body.getReader();
+            const decoder = new TextDecoder("utf-8");
+            
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                
+                const chunk = decoder.decode(value, { stream: true });
+                const lines = chunk.split('\n');
+                
+                for (let line of lines) {
+                    line = line.trim();
+                    if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                        try {
+                            const dataObj = JSON.parse(line.substring(6));
+                            if (dataObj.choices && dataObj.choices.length > 0 && dataObj.choices[0].delta && dataObj.choices[0].delta.content) {
+                                fullContent += dataObj.choices[0].delta.content;
+                            }
+                        } catch(e) {
+                            // 忽略单个 chunk 的解析异常，容错处理
+                        }
+                    }
+                }
+            }
+        } catch(e) {
+            throw new Error(`流式接收过程中发生异常: ${e.message}`);
+        }
+
+        let cleanContent = fullContent;
         
         // 终极防御：针对智能体(Agent)套壳中转站——大模型甚至会自己写代码跑 OCR 并在输出里包含多个 ```python 和 ```shell 代码块！
         // 绝对不能用 split("```") 否则会截错代码块。
@@ -156,14 +185,14 @@ export async function onRequestPost(context) {
         if (startIdx !== -1 && endIdx !== -1 && endIdx >= startIdx) {
             cleanContent = cleanContent.substring(startIdx, endIdx + 1);
         } else {
-             throw new Error(`大模型被彻底干扰或未返回JSON结构！原始输出: ${content}`);
+             throw new Error(`大模型被彻底干扰或未返回JSON结构！原始输出: ${fullContent}`);
         }
         
         let parsedData;
         try {
             parsedData = JSON.parse(cleanContent);
         } catch(e) {
-            throw new Error(`无法解析模型返回的 JSON (${e.message})。返回的原始内容片段: ${content.substring(0, 100)}...`);
+            throw new Error(`无法解析模型返回的 JSON (${e.message})。返回的原始内容片段: ${fullContent.substring(0, 100)}...`);
         }
 
         // 获取 questions 数组，如果模型没按照规范叫 questions，我们尝试获取任意第一个数组类型的值
