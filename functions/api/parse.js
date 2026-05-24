@@ -75,15 +75,18 @@ export async function onRequestPost(context) {
             });
         }
 
-        // 真实的大模型请求 (这里以 DeepSeek API 为例，兼容 OpenAI API)
-        const aiResponse = await fetch("https://api.deepseek.com/chat/completions", {
+        // 真实的大模型请求，支持官方与第三方中转站自适应
+        const baseUrl = env.AI_BASE_URL || "https://api.deepseek.com/chat/completions";
+        const modelName = env.AI_MODEL_NAME || "deepseek-chat";
+
+        const aiResponse = await fetch(baseUrl, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${env.DEEPSEEK_API_KEY}`
             },
             body: JSON.stringify({
-                model: "deepseek-chat", // 使用 deepseek-chat 或 deepseek-reasoner
+                model: modelName, 
                 messages: [
                     { role: "system", content: systemPrompt },
                     { role: "user", content: rawText }
