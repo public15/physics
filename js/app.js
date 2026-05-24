@@ -2463,7 +2463,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="question-card" id="q-${uniqueId}">
                     <div class="question-title-row">
                         <span class="score-badge">[AI 极速切片 ${i+1}]</span>
-                        <span class="q-content">${q.question}</span>
+                        <span class="q-content">${q.question || q.content || q.title || q.text || q.body || `<span style="color:#ef4444; font-size:12px;">【题干提取失败，模型擅自修改了数据结构】<br>它的原始数据是: ${JSON.stringify(q)}</span>`}</span>
                     </div>
                     ${(q.options && q.options.length > 0) ? `
                         <ul class="q-options-list" style="list-style:none; padding:0; margin:10px 0;">
