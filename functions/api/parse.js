@@ -138,6 +138,18 @@ export async function onRequestPost(context) {
         } else if (cleanContent.includes("```")) {
             cleanContent = cleanContent.split("```")[1].split("```")[0].trim();
         }
+
+        // 终极防御 1：有些模型喜欢用 Markdown 引用格式（每行以 > 开头）包裹 JSON
+        cleanContent = cleanContent.replace(/^>\s*/gm, '');
+
+        // 终极防御 2：不管前面有多少乱七八糟的废话，既然是 json_object，那一定是包裹在最外层 {} 中的
+        const firstBrace = cleanContent.indexOf('{');
+        const lastBrace = cleanContent.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace >= firstBrace) {
+            cleanContent = cleanContent.substring(firstBrace, lastBrace + 1);
+        } else {
+             throw new Error("大模型彻底失控：返回内容中完全找不到任何 JSON 对象的花括号包围结构。");
+        }
         
         let parsedData;
         try {
