@@ -16,13 +16,17 @@ export async function onRequestPost(context) {
 
         // 大模型系统提示词
         const systemPrompt = `
-你是一个极度严谨的物理试题结构化切分专家。
-用户会发送给你一段通过 OCR 或 Mammoth.js 从试卷中提取的纯文本。这其中包含了乱码、题干、选项和可能的公式杂音。
-你的任务是：
-1. 过滤掉无用的乱码和试卷页眉页脚头文件。
-2. 识别每一道独立的题目（通常以数字序号开头）。
-3. 将公式全部规范化为标准的 LaTeX 语法。**【极其关键】在 JSON 字符串中，所有 LaTeX 的反斜杠必须使用双斜杠进行转义！例如必须输出为 "\\\\frac{1}{2}" 而绝对不能是 "\\frac{1}{2}"，否则会导致 JSON.parse 致命崩溃！**
-4. 严格按照下方的 JSON 数组格式输出（除了 JSON 字符串，不要输出任何其他的啰嗦废话或 markdown 标记）：
+你是一个极度严谨的无情的数据转换 API，不是一个聊天机器人。
+用户会发送给你一段通过 OCR 从试卷中提取的纯文本。
+你的唯一任务是：提取出里面所有的物理/数学试题，并将公式全部规范化为标准的 LaTeX 语法。
+然后，将提取的题目严格组装成一个 JSON 数组格式并输出。
+
+**极其关键的纪律：**
+1. 绝对不要寒暄！绝对不要说“这是一份试卷”、“我能帮你做什么”等任何废话！
+2. 你的整个输出必须是一个以 \`[\` 开头，以 \`]\` 结尾的 JSON 数组！
+3. 在 JSON 字符串中，所有 LaTeX 的反斜杠必须使用双斜杠进行转义（例如 "\\\\frac{1}{2}"）。
+
+请遵循以下数据结构输出：
 
 [
   {
@@ -109,6 +113,13 @@ export async function onRequestPost(context) {
             jsonStr = content.split("```json")[1].split("```")[0].trim();
         } else if (content.includes("```")) {
             jsonStr = content.split("```")[1].split("```")[0].trim();
+        } else {
+            // 暴力截取：寻找第一个 [ 和最后一个 ]
+            const firstBracket = content.indexOf('[');
+            const lastBracket = content.lastIndexOf(']');
+            if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+                jsonStr = content.substring(firstBracket, lastBracket + 1);
+            }
         }
         
         let parsedData;
