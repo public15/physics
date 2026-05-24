@@ -135,13 +135,34 @@ export async function onRequestPost(context) {
         try {
             const reader = aiResponse.body.getReader();
             const decoder = new TextDecoder("utf-8");
+            let buffer = "";
             
             while (true) {
                 const { done, value } = await reader.read();
-                if (done) break;
+                if (done) {
+                    // 处理流结束时可能残留在 buffer 中的最后一行数据
+                    if (buffer) {
+                        const lines = buffer.split('\n');
+                        for (let line of lines) {
+                            line = line.trim();
+                            if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                                try {
+                                    const dataObj = JSON.parse(line.substring(6));
+                                    if (dataObj.choices && dataObj.choices.length > 0 && dataObj.choices[0].delta && dataObj.choices[0].delta.content) {
+                                        fullContent += dataObj.choices[0].delta.content;
+                                    }
+                                } catch(e) {}
+                            }
+                        }
+                    }
+                    break;
+                }
                 
-                const chunk = decoder.decode(value, { stream: true });
-                const lines = chunk.split('\n');
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                
+                // 最核心的修补：将最后一行（往往是不完整的残余片段）弹出，留到下一次 chunk 到来时拼接
+                buffer = lines.pop();
                 
                 for (let line of lines) {
                     line = line.trim();
