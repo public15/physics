@@ -142,13 +142,28 @@ export async function onRequestPost(context) {
         // 终极防御 1：有些模型喜欢用 Markdown 引用格式（每行以 > 开头）包裹 JSON
         cleanContent = cleanContent.replace(/^>\s*/gm, '');
 
-        // 终极防御 2：不管前面有多少乱七八糟的废话，既然是 json_object，那一定是包裹在最外层 {} 中的
+        // 终极防御 2：提取最外层的 JSON 结构（可能是 {} 或 []）
         const firstBrace = cleanContent.indexOf('{');
         const lastBrace = cleanContent.lastIndexOf('}');
-        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace >= firstBrace) {
-            cleanContent = cleanContent.substring(firstBrace, lastBrace + 1);
+        const firstBracket = cleanContent.indexOf('[');
+        const lastBracket = cleanContent.lastIndexOf(']');
+        
+        let startIdx = -1;
+        let endIdx = -1;
+        
+        // 比较哪个结构在最外面
+        if (firstBrace !== -1 && lastBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) {
+            startIdx = firstBrace;
+            endIdx = lastBrace;
+        } else if (firstBracket !== -1 && lastBracket !== -1) {
+            startIdx = firstBracket;
+            endIdx = lastBracket;
+        }
+
+        if (startIdx !== -1 && endIdx !== -1 && endIdx >= startIdx) {
+            cleanContent = cleanContent.substring(startIdx, endIdx + 1);
         } else {
-             throw new Error("大模型彻底失控：返回内容中完全找不到任何 JSON 对象的花括号包围结构。");
+             throw new Error(`大模型未返回JSON结构！疑似被风控或故障。原始输出: ${content}`);
         }
         
         let parsedData;
