@@ -9,9 +9,10 @@ export async function onRequestPost(context) {
     try {
         const body = await request.json();
         const rawText = body.text;
+        const images = body.images; // 包含 base64 字符串的数组
 
-        if (!rawText || rawText.trim() === '') {
-            return new Response(JSON.stringify({ error: "文本内容为空" }), { status: 400 });
+        if (!rawText && (!images || images.length === 0)) {
+            return new Response(JSON.stringify({ error: "请求内容为空，既没有文本也没有图片！" }), { status: 400 });
         }
 
         // 大模型系统提示词
@@ -84,6 +85,25 @@ export async function onRequestPost(context) {
         const baseUrl = env.AI_BASE_URL || "https://api.deepseek.com/chat/completions";
         const modelName = env.AI_MODEL_NAME || "deepseek-chat";
 
+        // 根据前端传来的负载类型，构造多模态或纯文本的 user message
+        let userMessageContent;
+        if (images && images.length > 0) {
+            userMessageContent = [
+                { 
+                    type: "text", 
+                    text: "请将附带的这些高清试卷截图中的物理/数学题目全部严格提取为 JSON 数组。注意图片中包含的特殊标志、几何图形和电路图，请用纯文本的形式将它们描述在题干或选项里。记住你的角色是无情的数据格式化器，不要解答试题！不要问候！只要 JSON！" 
+                }
+            ];
+            images.forEach(imgBase64 => {
+                userMessageContent.push({
+                    type: "image_url",
+                    image_url: { url: imgBase64 } // 接收完整的 data:image/jpeg;base64,...
+                });
+            });
+        } else {
+            userMessageContent = `请将以下位于 <<< 和 >>> 之间的试卷文本严格提取为 JSON 数组。记住你的角色是无情的数据格式化器，不要解答试题！不要问候！只要 JSON！\n\n<<<\n${rawText}\n>>>`;
+        }
+
         const aiResponse = await fetch(baseUrl, {
             method: "POST",
             headers: {
@@ -94,7 +114,7 @@ export async function onRequestPost(context) {
                 model: modelName, 
                 messages: [
                     { role: "system", content: systemPrompt },
-                    { role: "user", content: `请将以下位于 <<< 和 >>> 之间的试卷文本严格提取为 JSON 数组。记住你的角色是无情的数据格式化器，不要解答试题！不要问候！只要 JSON！\n\n<<<\n${rawText}\n>>>` }
+                    { role: "user", content: userMessageContent }
                 ],
                 temperature: 0.01 // 极其逼近 0 的温度，消除任何创造性聊天的冲动
             })

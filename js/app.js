@@ -2331,18 +2331,24 @@ document.addEventListener("DOMContentLoaded", () => {
             window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
         }
 
-        // 纯前端极速提取 PDF 文字层
-        async function extractTextFromPDF(arrayBuffer) {
+        // 纯前端极速渲染 PDF 为高清图片组，供多模态大模型“看”题
+        async function convertPdfToImages(arrayBuffer) {
             const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-            let text = "";
+            let images = [];
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
-                const textContent = await page.getTextContent();
-                // 将每页的文字碎片用空格连接起来
-                const pageText = textContent.items.map(item => item.str).join(" ");
-                text += pageText + "\n";
+                // 采用 1.5 倍缩放，确保公式和小图标足够清晰，同时控制 Base64 体积
+                const viewport = page.getViewport({ scale: 1.5 });
+                const canvas = document.createElement("canvas");
+                const context = canvas.getContext("2d");
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                
+                await page.render({ canvasContext: context, viewport: viewport }).promise;
+                // 转为 JPEG 以降低发送给 API 的体积压力
+                images.push(canvas.toDataURL("image/jpeg", 0.8));
             }
-            return text;
+            return images;
         }
 
         // 真实 R2 极速流式直传架构及 AI 切片联动
@@ -2360,25 +2366,27 @@ document.addEventListener("DOMContentLoaded", () => {
             formData.append("file", file);
             fetch("/api/upload", { method: "POST", body: formData }).catch(e => console.error("R2 原文件留档失败:", e));
 
-            // 2. 利用浏览器算力，通过 Mammoth.js 无损提纯 Word 文本
+            // 2. 利用浏览器算力，通过 Mammoth.js 提纯 Word 文本，或通过 PDF.js 生成高清快照
             let rawText = "";
+            let pdfImages = null; // 存放 PDF 转化的 base64 数组
             progressBar.style.width = `20%`;
             progressPercent.textContent = `20%`;
-            statusText.textContent = `正在启动前端引擎提取文档纯文本...`;
+            statusText.textContent = `正在启动前端引擎解析文档...`;
 
             try {
                 if (file.name.toLowerCase().endsWith(".docx")) {
+                    statusText.textContent = `正在无损提取 Word 纯文本...`;
                     const arrayBuffer = await file.arrayBuffer();
                     // 这里依赖在 index.html 引入的 mammoth.js
                     const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
                     rawText = result.value;
                 } else if (file.name.toLowerCase().endsWith(".pdf")) {
-                    statusText.textContent = "正在调用浏览器算力级 PDF 引擎剥离文本层...";
+                    statusText.textContent = "正在调用浏览器算力级 PDF 引擎进行高清视觉采样...";
                     const arrayBuffer = await file.arrayBuffer();
-                    rawText = await extractTextFromPDF(arrayBuffer);
+                    pdfImages = await convertPdfToImages(arrayBuffer);
                     
-                    if (!rawText || rawText.trim().length === 0) {
-                        throw new Error("未能从该 PDF 中提取到任何可编辑文字！请确保这不是一份纯图片的扫描版 PDF。");
+                    if (!pdfImages || pdfImages.length === 0) {
+                        throw new Error("未能从该 PDF 渲染出任何图像！");
                     }
                 } else {
                     throw new Error("当前系统为了保证提纯质量，仅支持 .docx 与 .pdf 文件！");
@@ -2393,13 +2401,16 @@ document.addEventListener("DOMContentLoaded", () => {
             // 3. 将提纯后的文本发往 /api/parse
             progressBar.style.width = `50%`;
             progressPercent.textContent = `50%`;
-            statusText.textContent = `文本提纯完毕！正在跨网络唤醒 R1 大模型进行语义切片...`;
+            statusText.textContent = `前端处理完毕！正在跨网络唤醒大模型引擎进行深度推演...`;
 
             try {
+                // 如果是 PDF，走图片数组视觉流；如果是 Word，走纯文本流
+                const payload = pdfImages ? { images: pdfImages } : { text: rawText };
+
                 const parseResp = await fetch("/api/parse", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ text: rawText })
+                    body: JSON.stringify(payload)
                 });
                 
                 if (!parseResp.ok) {
