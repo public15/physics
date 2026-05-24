@@ -2297,41 +2297,92 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        // 炫酷模拟上传进度动画
+        // 真实 R2 极速流式直传架构
         function simulateUpload(file) {
             contentArea.classList.add("hidden");
             progressArea.classList.remove("hidden");
             
-            let progress = 0;
-            statusText.textContent = `正在提取 ${file.name} 中的纯文本和图片...`;
-            
-            const interval = setInterval(() => {
-                progress += Math.random() * 5;
-                if (progress > 30 && progress < 35) {
-                    statusText.textContent = "正在将文本块发送至 R1 深度推演中心...";
-                } else if (progress > 60 && progress < 65) {
-                    statusText.textContent = "R1 正在进行 LaTeX 纠正与题型分类...";
-                } else if (progress > 90) {
-                    statusText.textContent = "处理完毕！准备进入排版引擎...";
+            progressBar.style.width = "0%";
+            progressPercent.textContent = "0%";
+            statusText.textContent = `准备极速传输文件: ${file.name} ...`;
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "/api/upload", true);
+
+            // 监听真实的上传进度
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    let percentComplete = Math.floor((e.loaded / e.total) * 100);
+                    progressBar.style.width = `${percentComplete}%`;
+                    progressPercent.textContent = `${percentComplete}%`;
+
+                    if (percentComplete < 30) {
+                        statusText.textContent = `正在高速传输: ${file.name} ...`;
+                    } else if (percentComplete < 60) {
+                        statusText.textContent = "文件正在无缝接入大模型分析中枢...";
+                    } else if (percentComplete < 99) {
+                        statusText.textContent = "云端正在进行语义切片预处理...";
+                    } else {
+                        statusText.textContent = "上传完成，正在等待云端确认接收...";
+                    }
                 }
-                
-                if (progress >= 100) {
-                    progress = 100;
-                    clearInterval(interval);
+            };
+
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        statusText.textContent = "上传成功！R1 将开始后台推演。";
+                        progressBar.style.width = "100%";
+                        progressPercent.textContent = "100%";
+                        
+                        setTimeout(() => {
+                            alert(`🎉 文件已成功上传至您的私有 R2 云盘！\n云端存储路径：${response.objectKey}\n\nR1 分析引擎接入后将自动拉取此文件进行智能组卷。`);
+                            // 恢复原状
+                            progressArea.classList.add("hidden");
+                            contentArea.classList.remove("hidden");
+                            progressBar.style.width = "0%";
+                            progressPercent.textContent = "0%";
+                            fileInput.value = ""; // 重置 input
+                        }, 1000);
+                    } catch (e) {
+                        statusText.textContent = "解析服务器响应失败";
+                    }
+                } else {
+                    let errorMsg = "发生未知错误";
+                    try {
+                        const errResp = JSON.parse(xhr.responseText);
+                        errorMsg = errResp.error || errorMsg;
+                    } catch(e) {}
+                    
+                    statusText.textContent = `上传失败: ${errorMsg}`;
+                    statusText.style.color = "#ef4444";
+                    
                     setTimeout(() => {
-                        alert("🎉 PoC 演示完毕！\n\n前端 UI 与交互已完成就绪。当后端 R1 服务搭建完毕后，此处的进度条将直接导向『专项习题』板块并自动渲染解析结果。");
-                        // 恢复原状
                         progressArea.classList.add("hidden");
                         contentArea.classList.remove("hidden");
-                        progressBar.style.width = "0%";
-                        progressPercent.textContent = "0%";
-                    }, 500);
+                        statusText.style.color = "var(--text-primary)";
+                        fileInput.value = "";
+                    }, 3000);
                 }
+            };
+
+            xhr.onerror = () => {
+                statusText.textContent = "网络请求失败，请检查网络连接";
+                statusText.style.color = "#ef4444";
                 
-                progressBar.style.width = `${Math.min(progress, 100)}%`;
-                progressPercent.textContent = `${Math.floor(Math.min(progress, 100))}%`;
-                
-            }, 100);
+                setTimeout(() => {
+                    progressArea.classList.add("hidden");
+                    contentArea.classList.remove("hidden");
+                    statusText.style.color = "var(--text-primary)";
+                    fileInput.value = "";
+                }, 3000);
+            };
+
+            xhr.send(formData);
         }
     }
 
