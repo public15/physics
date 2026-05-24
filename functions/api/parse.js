@@ -37,8 +37,8 @@ export async function onRequestPost(context) {
 `;
 
         // 如果没有配置真实 API KEY，为了不影响前台开发体验，直接返回一条极其逼真的 Mock 数据
-        if (!env.DEEPSEEK_API_KEY) {
-            console.warn("未检测到 DEEPSEEK_API_KEY，使用 Mock 大模型数据进行后置排版链路测试");
+        if (!env.API_KEY) {
+            console.warn("未检测到 API_KEY，使用 Mock 大模型数据进行后置排版链路测试");
             const mockJSON = [
                 {
                     "id": "ai_mock_1",
@@ -67,7 +67,7 @@ export async function onRequestPost(context) {
 
             return new Response(JSON.stringify({
                 success: true,
-                message: "【系统提示】这是通过 Mock 数据返回的结果（因云端未配置 DEEPSEEK_API_KEY）",
+                message: "【系统提示】这是通过 Mock 数据返回的结果（因云端未配置 API_KEY）",
                 data: mockJSON
             }), {
                 status: 200,
@@ -83,7 +83,7 @@ export async function onRequestPost(context) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${env.DEEPSEEK_API_KEY}`
+                "Authorization": `Bearer ${env.API_KEY}`
             },
             body: JSON.stringify({
                 model: modelName, 
