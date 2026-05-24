@@ -2401,28 +2401,65 @@ document.addEventListener("DOMContentLoaded", () => {
             // 3. 将提纯后的文本发往 /api/parse
             progressBar.style.width = `50%`;
             progressPercent.textContent = `50%`;
-            statusText.textContent = `前端处理完毕！正在跨网络唤醒大模型引擎进行深度推演...`;
+            
+            let finalAiDataArray = [];
+            let serverMsg = "";
 
             try {
-                // 如果是 PDF，走图片数组视觉流；如果是 Word，走纯文本流
-                const payload = pdfImages ? { images: pdfImages } : { text: rawText };
+                if (pdfImages && pdfImages.length > 0) {
+                    // 分治策略：由于多模态处理极慢，一次性发多页极易导致 Cloudflare 100s 524 超时
+                    // 必须一页一页串行发给后端，并在前端聚合数据
+                    for (let i = 0; i < pdfImages.length; i++) {
+                        statusText.textContent = `正在利用多模态视觉引擎进行深度推演 (第 ${i+1} 页 / 共 ${pdfImages.length} 页)...`;
+                        const parseResp = await fetch("/api/parse", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ images: [pdfImages[i]] }) // 每次只发单页
+                        });
 
-                const parseResp = await fetch("/api/parse", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
-                
-                if (!parseResp.ok) {
-                    let serverError = "未知服务器错误";
-                    try {
-                        const errJson = await parseResp.json();
-                        serverError = errJson.error || serverError;
-                    } catch(e) {}
-                    throw new Error(`(${parseResp.status}) ${serverError}`);
+                        if (!parseResp.ok) {
+                            let serverError = "未知服务器错误";
+                            try {
+                                const errJson = await parseResp.json();
+                                serverError = errJson.error || serverError;
+                            } catch(e) {}
+                            throw new Error(`第 ${i+1} 页识别失败: (${parseResp.status}) ` + serverError);
+                        }
+
+                        const parseData = await parseResp.json();
+                        if (parseData.data && Array.isArray(parseData.data)) {
+                            finalAiDataArray = finalAiDataArray.concat(parseData.data);
+                        }
+                        if (parseData.message) serverMsg = parseData.message;
+                        
+                        // 更新进度条
+                        const currentProgress = 50 + Math.floor(((i + 1) / pdfImages.length) * 40);
+                        progressBar.style.width = `${currentProgress}%`;
+                        progressPercent.textContent = `${currentProgress}%`;
+                    }
+                } else {
+                    // Word 纯文本流，速度较快，依然单次请求
+                    statusText.textContent = `前端处理完毕！正在跨网络唤醒大模型引擎进行深度推演...`;
+                    const parseResp = await fetch("/api/parse", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ text: rawText })
+                    });
+                    
+                    if (!parseResp.ok) {
+                        let serverError = "未知服务器错误";
+                        try {
+                            const errJson = await parseResp.json();
+                            serverError = errJson.error || serverError;
+                        } catch(e) {}
+                        throw new Error(`(${parseResp.status}) ` + serverError);
+                    }
+                    const parseData = await parseResp.json();
+                    if (parseData.data && Array.isArray(parseData.data)) {
+                        finalAiDataArray = finalAiDataArray.concat(parseData.data);
+                    }
+                    if (parseData.message) serverMsg = parseData.message;
                 }
-                
-                const parseData = await parseResp.json();
                 
                 progressBar.style.width = `100%`;
                 progressPercent.textContent = `100%`;
@@ -2430,13 +2467,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 // 4. 重组排版，插入习题卡片
                 setTimeout(() => {
-                    injectAIQuestions(parseData.data, parseData.message);
+                    injectAIQuestions(finalAiDataArray, serverMsg);
                 }, 800);
 
             } catch(e) {
                 statusText.textContent = `AI 唤醒失败: ${e.message}`;
                 statusText.style.color = "#ef4444";
-                setTimeout(() => resetUploadUI(), 3000);
+                setTimeout(() => resetUploadUI(), 5000);
             }
         }
 
