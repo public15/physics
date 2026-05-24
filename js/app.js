@@ -2337,8 +2337,8 @@ document.addEventListener("DOMContentLoaded", () => {
             let images = [];
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
-                // 采用 1.5 倍缩放，确保公式和小图标足够清晰，同时控制 Base64 体积
-                const viewport = page.getViewport({ scale: 1.5 });
+                // 采用 1.2 倍缩放，在保证公式清晰的前提下，大幅减少 GPT-4o 的高频瓦片切割数，防止其耗时过长导致 524
+                const viewport = page.getViewport({ scale: 1.2 });
                 const canvas = document.createElement("canvas");
                 const context = canvas.getContext("2d");
                 canvas.height = viewport.height;
@@ -2436,6 +2436,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         const currentProgress = 50 + Math.floor(((i + 1) / pdfImages.length) * 40);
                         progressBar.style.width = `${currentProgress}%`;
                         progressPercent.textContent = `${currentProgress}%`;
+                        
+                        // 强制大模型“喘口气”：防止连续猛击中转站触发了并发拥堵或排队死锁导致后续请求直接超时
+                        if (i < pdfImages.length - 1) {
+                            statusText.textContent = `第 ${i+1} 页推演完毕，引擎冷却降温中 (缓冲 3 秒)...`;
+                            await new Promise(resolve => setTimeout(resolve, 3000));
+                        }
                     }
                 } else {
                     // Word 纯文本流，速度较快，依然单次请求
