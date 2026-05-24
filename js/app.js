@@ -2403,7 +2403,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
                 
                 if (!parseResp.ok) {
-                    throw new Error(`AI 分析接口响应错误 (${parseResp.status})`);
+                    let serverError = "未知服务器错误";
+                    try {
+                        const errJson = await parseResp.json();
+                        serverError = errJson.error || serverError;
+                    } catch(e) {}
+                    throw new Error(`(${parseResp.status}) ${serverError}`);
                 }
                 
                 const parseData = await parseResp.json();
