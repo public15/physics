@@ -1182,6 +1182,10 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             card.innerHTML = `
+                <label class="print-select-toggle no-print" title="取消勾选后，导出 PDF 时将不包含此题">
+                    <input type="checkbox" class="print-cb" checked>
+                    <span>打印此题</span>
+                </label>
                 <div class="question-title-row">
                     <strong>第 ${idx + 1} 题【${typeLabel}】</strong> ${processedQuestionText}
                     <span class="score-badge">（${q.score}分）</span>
@@ -1245,6 +1249,15 @@ document.addEventListener("DOMContentLoaded", () => {
     // 9. 智能 PDF 一键导出排版系统
     // ----------------------------------------------------
     function triggerPdfExport() {
+        const cards = document.querySelectorAll('#exercisesList .question-card');
+        cards.forEach(card => {
+            const cb = card.querySelector('.print-cb');
+            if (cb && !cb.checked) {
+                card.classList.add('exclude-from-print');
+            } else {
+                card.classList.remove('exclude-from-print');
+            }
+        });
         // A. 前置处理：获取当前用户期望的 PDF 打印属性 (student / teacher)
         let mode = "student";
         
