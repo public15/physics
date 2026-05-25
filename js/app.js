@@ -2470,26 +2470,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
                             parseData.data.forEach(q => {
                                 q.source_image = sourceBase64;
-                                // 检查是否有大模型估算的高度区间 (0-100)
-                                if (typeof q.image_y_start === 'number' && typeof q.image_y_end === 'number' && q.image_y_end > q.image_y_start) {
+                                // 四维精准切图：检查是否有大模型估算的四点坐标
+                                if (typeof q.image_x_start === 'number' && typeof q.image_x_end === 'number' && 
+                                    typeof q.image_y_start === 'number' && typeof q.image_y_end === 'number' && 
+                                    q.image_y_end > q.image_y_start && q.image_x_end > q.image_x_start) {
                                     try {
-                                        // 垂直向外扩展 2% 作为容差，防止大模型切得太紧导致首尾文字被切破
+                                        // 向外扩展 2% 作为容差，防止大模型框得太紧导致边缘缺失
+                                        const xStartPercent = Math.max(0, q.image_x_start - 2);
+                                        const xEndPercent = Math.min(100, q.image_x_end + 2);
                                         const yStartPercent = Math.max(0, q.image_y_start - 2);
                                         const yEndPercent = Math.min(100, q.image_y_end + 2);
                                         
                                         const cropCanvas = document.createElement("canvas");
-                                        cropCanvas.width = imgObj.width;
+                                        cropCanvas.width = imgObj.width * (xEndPercent - xStartPercent) / 100;
                                         cropCanvas.height = imgObj.height * (yEndPercent - yStartPercent) / 100;
                                         const ctx = cropCanvas.getContext("2d");
                                         
+                                        // 绘制到新画布
                                         ctx.drawImage(
                                             imgObj, 
-                                            0, imgObj.height * yStartPercent / 100, imgObj.width, cropCanvas.height,
+                                            imgObj.width * xStartPercent / 100, imgObj.height * yStartPercent / 100, 
+                                            cropCanvas.width, cropCanvas.height,
                                             0, 0, cropCanvas.width, cropCanvas.height
                                         );
-                                        q.cropped_image = cropCanvas.toDataURL("image/jpeg", 0.85);
+                                        q.cropped_image = cropCanvas.toDataURL("image/jpeg", 0.9);
                                     } catch (err) {
-                                        console.warn("切图失败：", err);
+                                        console.warn("四维精准切图失败：", err);
                                     }
                                 }
                             });
