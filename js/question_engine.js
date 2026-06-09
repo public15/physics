@@ -1036,7 +1036,143 @@ const PHYSICS_ENGINE = {
                 };
             }
         },
-
+        {
+            id: "math_factor_extract",
+            category: "num-exp",
+            type: "fill",
+            score: 10,
+            generator() {
+                // 结构 1: Ax^2 - Bx = Ax(x - C)
+                // 结构 2: Aa^2b + Aab^2 = Aab(a + b)
+                const isStructureA = Math.random() < 0.5;
+                if (isStructureA) {
+                    const A = PHYSICS_ENGINE.randomRange(2, 6);
+                    const C = PHYSICS_ENGINE.randomRange(2, 6);
+                    const B = A * C;
+                    return {
+                        question: `对多项式进行因式分解：$${A}x^2 - ${B}x = $___________。`,
+                        answer: `${A}x(x - ${C})`,
+                        steps: [
+                            `1. **寻找公因式**：观察多项式 $${A}x^2 - ${B}x$ 的各项，二次项是 $${A}x^2$，一次项是 $-${B}x$。`,
+                            `2. **确定公因式**：两项的系数 $${A}$ 和 $-${B}$ 的公约数是 $${A}$，字母部分共有因式是 $x$，因此最大公因式为 $${A}x$。`,
+                            `3. **提取公因式**：用多项式除以公因式，得到各项剩下的因式，即：$${A}x^2 \\div ${A}x = x$，$-${B}x \\div ${A}x = -${C}$。`,
+                            `4. **写出因式分解结果**：$${A}x(x - ${C})$。`
+                        ]
+                    };
+                } else {
+                    const A = PHYSICS_ENGINE.randomRange(2, 6);
+                    return {
+                        question: `对多项式进行因式分解：$${A}a^2b + ${A}ab^2 = $___________。`,
+                        answer: `${A}ab(a + b)`,
+                        steps: [
+                            `1. **寻找公因式**：观察多项式 $${A}a^2b + ${A}ab^2$ 的各项，两项均含有因数 $${A}$，且字母部分均含有 $a$ 和 $b$。`,
+                            `2. **确定公因式**：两项的共同因式中，字母最低次数分别为 $a^1$ 和 $b^1$，因此最大公因式为 $${A}ab$。`,
+                            `3. **提取公因式**：将多项式各项除以公因式 $${A}ab$，各项剩下的部分分别为 $a$ 和 $b$。`,
+                            `4. **写出因式分解结果**：$${A}ab(a + b)$。`
+                        ]
+                    };
+                }
+            }
+        },
+        {
+            id: "math_factor_formula",
+            category: "num-exp",
+            type: "fill",
+            score: 10,
+            generator() {
+                // 结构 1 (平方差): a^2 x^2 - b^2 = (ax + b)(ax - b)
+                // 结构 2 (完全平方): x^2 ± 2ax + a^2 = (x ± a)^2
+                const isDiff = Math.random() < 0.5;
+                if (isDiff) {
+                    const primes = [[2,3], [3,2], [2,5], [5,2], [3,4], [4,3], [3,5], [5,3]];
+                    const pick = PHYSICS_ENGINE.randomPick(primes);
+                    const a = pick[0];
+                    const b = pick[1];
+                    const a2 = a * a;
+                    const b2 = b * b;
+                    return {
+                        question: `对多项式进行因式分解：$${a2}x^2 - ${b2} = $___________。`,
+                        answer: `(${a}x + ${b})(${a}x - ${b})`,
+                        steps: [
+                            `1. **识别公式结构**：多项式 $${a2}x^2 - ${b2}$ 是两项的平方差形式，符合平方差公式 $A^2 - B^2 = (A + B)(A - B)$。`,
+                            `2. **写成平方形式**：可以将 $${a2}x^2$ 写成 $(${a}x)^2$，将 $${b2}$ 写成 $${b}^2$，即变形为：$(${a}x)^2 - ${b}^2$。`,
+                            `3. **代入公式分解**：以 $${a}x$ 作为 $A$，以 $${b}$ 作为 $B$ 代入平方差公式：`,
+                            `   $(${a}x)^2 - ${b}^2 = (${a}x + ${b})(${a}x - ${b})$。`
+                        ]
+                    };
+                } else {
+                    const a = PHYSICS_ENGINE.randomRange(2, 6);
+                    const isPlus = Math.random() < 0.5;
+                    const doubleA = 2 * a;
+                    const a2 = a * a;
+                    const signStr = isPlus ? "+" : "-";
+                    return {
+                        question: `对多项式进行因式分解：$x^2 ${signStr} ${doubleA}x + ${a2} = $___________。`,
+                        answer: isPlus ? `(x + ${a})^2` : `(x - ${a})^2`,
+                        steps: [
+                            `1. **识别公式结构**：多项式 $x^2 ${signStr} ${doubleA}x + ${a2}$ 是三项式，两端的项 $x^2$ 和 $${a2}$ 均为完全平方项。`,
+                            `2. **验证中间项**：中间项 $${signStr}${doubleA}x$ 恰好是两端底数 $x$ 与 $${a}$ 的乘积的 2 倍（即 $2 \\times x \\times ${a} = ${doubleA}x$）。`,
+                            `3. **匹配公式**：符合完全平方公式 $A^2 \\pm 2AB + B^2 = (A \\pm B)^2$。`,
+                            `4. **写出因式分解结果**：$x^2 ${signStr} 2 \\cdot x \\cdot ${a} + ${a}^2 = (x ${signStr} ${a})^2$。`
+                        ]
+                    };
+                }
+            }
+        },
+        {
+            id: "math_factor_cross",
+            category: "num-exp",
+            type: "calculation",
+            score: 20,
+            generator() {
+                // 生成 x^2 + (p+q)x + pq = (x+p)(x+q)
+                // 限制 p, q 范围为 [-5, 5] 之间的非零整数，且 p != q 且 p+q != 0
+                let p = 0, q = 0;
+                while (true) {
+                    p = PHYSICS_ENGINE.randomRange(-5, 5);
+                    q = PHYSICS_ENGINE.randomRange(-5, 5);
+                    if (p !== 0 && q !== 0 && p !== q && (p + q) !== 0) {
+                        break;
+                    }
+                }
+                
+                // 确保答案的一致性规范，按升序排列
+                const sorted = [p, q].sort((a,b)=>a-b);
+                const p_sorted = sorted[0];
+                const q_sorted = sorted[1];
+                
+                const sum = p + q;
+                const prod = p * q;
+                
+                let sumText = sum > 0 ? `+ ${sum}x` : `- ${Math.abs(sum)}x`;
+                if (sum === 1) sumText = "+ x";
+                else if (sum === -1) sumText = "- x";
+                
+                const prodText = prod > 0 ? `+ ${prod}` : `- ${Math.abs(prod)}`;
+                
+                const formatP = p > 0 ? `+ ${p}` : `- ${Math.abs(p)}`;
+                const formatQ = q > 0 ? `+ ${q}` : `- ${Math.abs(q)}`;
+                
+                const formatP_sorted = p_sorted > 0 ? `+ ${p_sorted}` : `- ${Math.abs(p_sorted)}`;
+                const formatQ_sorted = q_sorted > 0 ? `+ ${q_sorted}` : `- ${Math.abs(q_sorted)}`;
+                
+                return {
+                    question: `对二次三项式进行因式分解：$x^2 ${sumText} ${prodText}$。`,
+                    answer: `(x ${formatP_sorted})(x ${formatQ_sorted})`,
+                    steps: [
+                        `1. **观察各项系数**：二次项系数是 $1$，一次项系数是 $${sum}$，常数项是 $${prod}$。`,
+                        `2. **尝试十字相乘法**：寻找两个整数 $p$ 和 $q$，使得它们的积等于常数项 $${prod}$，和等于一次项系数 $${sum}$。`,
+                        `3. **锁定因子**：经过尝试，找到这两个数为 $${p}$ 和 $${q}$：`,
+                        `   积：$(${p}) \\times (${q}) = ${prod}$；`,
+                        `   和：$(${p}) + (${q}) = ${sum}$。`,
+                        `4. **十字相乘图示**：`,
+                        `   <div style="text-align:center; margin:10px 0;">$\\begin{array}{ccc} 1 & & ${p} \\\\ & \\times & \\\\ 1 & & ${q} \\end{array}$</div>`,
+                        `   交叉相乘相加验证：$1 \\times (${q}) + 1 \\times (${p}) = ${sum}$。`,
+                        `5. **写出因式分解结果**：$(x ${formatP})(x ${formatQ})$（习惯上可将常数项较小的因式写在前面，即：$(x ${formatP_sorted})(x ${formatQ_sorted})$）。`
+                    ]
+                };
+            }
+        },
         // ============================== 四、数学：方程与函数 (3个模板) ==============================
         {
             id: "math_quadratic_eq",

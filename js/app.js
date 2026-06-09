@@ -812,6 +812,38 @@ document.addEventListener("DOMContentLoaded", () => {
         // 计算按钮
         if (calcBtn) {
             calcBtn.addEventListener("click", () => {
+                // 特异性拦截：数学因式分解计算器一站式求解
+                if (formulaObj.id === "factorization") {
+                    const inputA = card.querySelector('input[data-var="a"]').value.trim();
+                    const inputB = card.querySelector('input[data-var="b"]').value.trim();
+                    const inputC = card.querySelector('input[data-var="c"]').value.trim();
+                    
+                    if (inputA === "") {
+                        alert("因式分解计算器至少需要输入二次项系数 a！");
+                        return;
+                    }
+                    
+                    const a = parseFloat(inputA);
+                    const b = inputB !== "" ? parseFloat(inputB) : 0;
+                    const c = inputC !== "" ? parseFloat(inputC) : 0;
+                    
+                    if (isNaN(a) || isNaN(b) || isNaN(c)) {
+                        alert("请输入有效的系数数值。");
+                        return;
+                    }
+                    
+                    const result = formulaObj.calculator.solve({ a, b, c });
+                    if (result.error) {
+                        alert(result.error);
+                        return;
+                    }
+                    
+                    resultStep.innerHTML = result.step;
+                    renderMathInElement(resultStep);
+                    resultBox.classList.add("active");
+                    return;
+                }
+
                 // 特异性拦截：数学方差计算器一站式求解
                 if (formulaObj.id === "variance_formula") {
                     const inputField = card.querySelector('.variance-input-field');

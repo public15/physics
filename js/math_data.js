@@ -152,7 +152,212 @@ const MATH_DB = {
                 }
             ]
         },
-
+        {
+            id: "factorization",
+            category: "num-exp",
+            title: "因式分解与十字相乘",
+            symbolFormula: "ax^2 + bx + c = (a_1x + c_1)(a_2x + c_2)",
+            definition: "因式分解是把一个多项式化为几个整式的积的形式。对于二次三项式 $ax^2 + bx + c$，若能在有理数范围内使用十字相乘法找到 $a_1 a_2 = a, c_1 c_2 = c$，且满足交叉相乘相加 $a_1c_2 + a_2c_1 = b$，则该式可因式分解为 $(a_1x + c_1)(a_2x + c_2)$。",
+            variables: [
+                { symbol: "a", name: "二次项系数", mainUnit: "常数", altUnits: [] },
+                { symbol: "b", name: "一次项系数", mainUnit: "常数", altUnits: [] },
+                { symbol: "c", name: "常数项", mainUnit: "常数", altUnits: [] }
+            ],
+            transformations: [
+                { resultSymbol: "提公因式", formula: "ma + mb + mc = m(a + b + c)", description: "多项式因式分解的基本方法之一" },
+                { resultSymbol: "平方差", formula: "a^2 - b^2 = (a+b)(a-b)", description: "利用平方差公式进行因式分解" },
+                { resultSymbol: "完全平方", formula: "a^2 \\pm 2ab + b^2 = (a \\pm b)^2", description: "利用完全平方公式进行因式分解" }
+            ],
+            calculator: {
+                variables: ["a", "b", "c"],
+                solve: (inputs) => {
+                    let a = inputs["a"];
+                    let b = inputs["b"];
+                    let c = inputs["c"];
+                    
+                    if (a === null || a === 0) {
+                        return { error: "二次项系数 a 不能为 0。" };
+                    }
+                    if (b === null) b = 0;
+                    if (c === null) c = 0;
+                    
+                    // 辅助函数：求最大公约数
+                    const gcd = (x, y) => {
+                        x = Math.abs(x);
+                        y = Math.abs(y);
+                        while (y) {
+                            let temp = y;
+                            y = x % y;
+                            x = temp;
+                        }
+                        return x;
+                    };
+                    
+                    // 辅助函数：格式化单项式 cx + d
+                    const formatBinomial = (c, d) => {
+                        let cText = "";
+                        if (c === 1) cText = "x";
+                        else if (c === -1) cText = "-x";
+                        else cText = c + "x";
+                        
+                        let dText = "";
+                        if (d > 0) dText = " + " + d;
+                        else if (d < 0) dText = " - " + Math.abs(d);
+                        
+                        if (c === 0) return d === 0 ? "0" : d.toString();
+                        return cText + dText;
+                    };
+                    
+                    // 1. 判断判别式
+                    const delta = b * b - 4 * a * c;
+                    if (delta < 0) {
+                        return {
+                            error: `判别式 \\Delta = b^2 - 4ac = (${b})^2 - 4 \\times ${a} \\times ${c} = ${delta} < 0。在实数范围内无法进行因式分解。`
+                        };
+                    }
+                    
+                    const sqrtDelta = Math.sqrt(delta);
+                    const isPerfectSquare = Number.isInteger(sqrtDelta);
+                    
+                    if (!isPerfectSquare) {
+                        // 在有理数范围内无法使用十字相乘法，但是可以在实数范围内用公式法因式分解
+                        let deltaLaTeX = simplifyLaTeXSqrt(delta);
+                        
+                        // 根的值
+                        let x1_val = (-b + sqrtDelta) / (2 * a);
+                        let x2_val = (-b - sqrtDelta) / (2 * a);
+                        
+                        let stepText = `1. **计算判别式**：<br>`;
+                        stepText += `$\\Delta = b^2 - 4ac = (${b})^2 - 4 \\times ${a} \\times ${c} = ${delta}$<br>`;
+                        stepText += `由于 $\\Delta = ${delta}$ 不是完全平方数，因此**无法在有理数范围内进行整系数因式分解（如十字相乘法）**。<br>`;
+                        stepText += `2. **采用配方法与求根公式法在实数范围内分解**：<br>`;
+                        stepText += `原多项式对应的方程有两个实数根：<br>`;
+                        
+                        let x1_latex = `\\frac{-${b} + \\sqrt{${delta}}}{${2*a}}`;
+                        let x2_latex = `\\frac{-${b} - \\sqrt{${delta}}}{${2*a}}`;
+                        
+                        stepText += `$x_1 = ${x1_latex}$，\\quad $x_2 = ${x2_latex}$<br>`;
+                        stepText += `3. **根据公式 $ax^2+bx+c = a(x-x_1)(x-x_2)$ 进行分解**：<br>`;
+                        
+                        let factorA = a === 1 ? "" : (a === -1 ? "-" : a.toString());
+                        stepText += `原式 = $${factorA}\\left(x - ${x1_latex}\\right)\\left(x - ${x2_latex}\\right)$`;
+                        
+                        return {
+                            a: x1_val,
+                            step: stepText
+                        };
+                    }
+                    
+                    // 2. 有理数范围内的因式分解
+                    // 如果 c = 0，直接提取公因式 x
+                    if (c === 0) {
+                        let g = gcd(a, b);
+                        let outCoef = a < 0 ? -g : g;
+                        let a_rem = a / outCoef;
+                        let b_rem = b / outCoef;
+                        
+                        let outCoefText = outCoef === 1 ? "" : (outCoef === -1 ? "-" : outCoef.toString());
+                        let inside = formatBinomial(a_rem, b_rem);
+                        
+                        let stepText = `1. **提取公因式法**：<br>`;
+                        stepText += `原式中各项含有公因式，提取公因式为：$${outCoefText === "-" ? "-1" : (outCoefText || "1")}x$<br>`;
+                        stepText += `2. **提取后得到**：<br>`;
+                        stepText += `原式 = $${outCoefText}x\\left(${inside}\\right)$`;
+                        
+                        return {
+                            a: a / b,
+                            step: stepText
+                        };
+                    }
+                    
+                    // 进行十字相乘搜索
+                    let a1 = 1, a2 = a, c1 = 0, c2 = 0;
+                    let found = false;
+                    
+                    // 先求 gcd 提取公因数
+                    let g = gcd(gcd(a, b), c);
+                    let sign = a < 0 ? -1 : 1;
+                    let outCoef = sign * g;
+                    let A = a / outCoef; // A > 0
+                    let B = b / outCoef;
+                    let C = c / outCoef;
+                    
+                    // 对 A x^2 + B x + C 进行因式分解 (A > 0)
+                    for (let A1 = 1; A1 <= Math.sqrt(A); A1++) {
+                        if (A % A1 === 0) {
+                            let A2 = A / A1;
+                            
+                            let absC = Math.abs(C);
+                            for (let C1 = -absC; C1 <= absC; C1++) {
+                                if (C1 !== 0 && C % C1 === 0) {
+                                    let C2 = C / C1;
+                                    if (A1 * C2 + A2 * C1 === B) {
+                                        a1 = A1;
+                                        a2 = A2;
+                                        c1 = C1;
+                                        c2 = C2;
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (found) break;
+                        }
+                    }
+                    
+                    if (!found) {
+                        return { error: "无法在有理数范围内因式分解。" };
+                    }
+                    
+                    let stepText = `1. **提取公因数**：<br>`;
+                    if (outCoef !== 1) {
+                        let outText = outCoef === -1 ? "-" : outCoef.toString();
+                        stepText += `原多项式系数存在公因数，提取系数后得：<br>`;
+                        stepText += `原式 = $${outText}\\left( ${A}x^2 ${B >= 0 ? '+' : ''}${B}x ${C >= 0 ? '+' : ''}${C} \\right)$<br>`;
+                    } else {
+                        stepText += `多项式系数无公因数，直接尝试十字相乘。<br>`;
+                    }
+                    
+                    stepText += `2. **十字相乘法分析**：<br>`;
+                    stepText += `我们将二次三项式 $${A}x^2 ${B >= 0 ? '+' : ''}${B}x ${C >= 0 ? '+' : ''}${C}$ 的系数进行拆解：<br>`;
+                    stepText += `二次项系数 $${A} = ${a1} \\times ${a2}$，常数项 $${C >= 0 ? '' : '-'}${Math.abs(C)} = (${c1}) \\times (${c2})$。<br>`;
+                    stepText += `交叉相乘并相加验证一次项系数：<br>`;
+                    stepText += `$${a1} \\times (${c2}) + ${a2} \\times (${c1}) = ${a1*c2} + ${a2*c1} = ${B}$ (验证成功)<br>`;
+                    
+                    stepText += `<br>十字相乘示意图：<br>`;
+                    stepText += `<div style="text-align:center; margin:10px 0;">$\\begin{array}{ccc}`;
+                    stepText += `${a1} & & ${c1} \\\\`;
+                    stepText += `& \\times & \\\\`;
+                    stepText += `${a2} & & ${c2}`;
+                    stepText += `\\end{array}$</div>`;
+                    
+                    let part1 = formatBinomial(a1, c1);
+                    let part2 = formatBinomial(a2, c2);
+                    
+                    let outPart = outCoef === 1 ? "" : (outCoef === -1 ? "-" : outCoef.toString());
+                    stepText += `<br>3. **因式分解结果**：<br>`;
+                    stepText += `原式 = <strong>$${outPart}(${part1})(${part2})$</strong>`;
+                    
+                    return {
+                        a: (-b + sqrtDelta) / (2 * a),
+                        step: stepText
+                    };
+                }
+            },
+            examples: [
+                {
+                    question: "将多项式 $2x^2 - 5x - 3$ 进行因式分解。",
+                    steps: [
+                        "1. **观察各项系数**：二次项系数 $2$，一次项系数 $-5$，常数项 $-3$。无公因式，尝试十字相乘法。",
+                        "2. **拆分系数**：二次项系数 $2 = 1 \\times 2$，常数项 $-3 = (-3) \\times 1$。",
+                        "3. **交叉相乘验证**：对角相乘并相加，验证是否等于一次项系数：$1 \\times 1 + 2 \\times (-3) = 1 - 6 = -5$，等于一次项系数。十字相乘示意为：",
+                        "   <div style=\"text-align:center; margin:10px 0;\">$\\begin{array}{ccc} 1 & & -3 \\\\ & \\times & \\\\ 2 & & 1 \\end{array}$</div>",
+                        "4. **写出因式分解结果**：$(x - 3)(2x + 1)$。",
+                        "**答：** $2x^2 - 5x - 3 = (x - 3)(2x + 1)$。"
+                    ]
+                }
+            ]
+        },
         // ================= 二、方程与函数 =================
         {
             id: "quadratic_equation",
