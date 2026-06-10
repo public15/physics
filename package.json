@@ -1,0 +1,11 @@
+{
+  "name": "physics-study-handbook",
+  "version": "1.0.0",
+  "description": "初中物理提分宝典 - 静态文件启动映射",
+  "scripts": {
+    "dev": "npx serve ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
