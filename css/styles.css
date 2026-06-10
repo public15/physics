@@ -152,6 +152,7 @@ body {
 .logo-text span {
     background: var(--accent-gradient);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -223,6 +224,10 @@ body {
     padding: 4px;
     border-radius: 24px;
     border: 1px solid var(--border-color);
+    position: fixed;
+    top: 14px;
+    right: 80px;
+    z-index: 1001;
 }
 
 .switch-btn {
@@ -1249,6 +1254,7 @@ body {
     .view-switcher {
         position: fixed !important;
         bottom: 0 !important;
+        top: auto !important;
         left: 0 !important;
         right: 0 !important;
         height: 62px !important;
@@ -1559,6 +1565,7 @@ body {
         -webkit-text-fill-color: #000000 !important;
         background: none !important;
         -webkit-background-clip: unset !important;
+        background-clip: unset !important;
     }
 
     .var-unit {
@@ -1751,45 +1758,46 @@ body {
         color: #000000 !important;
         -webkit-text-fill-color: #000000 !important;
     }
-}基于当前的“打印设置”控制解析的显示或隐藏 */
-    /* 教师版：完全渲染解析 */
-    body.print-teacher-mode .exam-solution-block {
-        display: block !important;
-        background: #f8f9fa !important;
-        border: 1px solid #000000 !important;
-        padding: 12px !important;
-        margin-top: 15px !important;
-        page-break-inside: avoid !important;
-    }
-    
-    /* 教师版：隐藏答题留白 */
-    body.print-teacher-mode .student-space {
-        display: none !important;
-    }
-    
-    /* 学生版：隐藏解析 */
-    body.print-student-mode .exam-solution-block {
-        display: none !important;
-    }
-    
-    /* 学生版：展示答题留白与线段 */
-    body.print-student-mode .student-space {
-        display: block !important;
-    }
-    
-    /* 给学生版在纸张上提供标准的做题格子/横线 */
-    body.print-student-mode .calculation-space {
-        background: transparent !important;
-        border: 1.5px dashed #000000 !important;
-        height: 180px !important;
-        color: #888888 !important;
-    }
-    
-    /* 答题线表示：如果是填空题留空，画出一条粗黑下划线 */
-    .print-fill-blank {
-        text-decoration: underline !important;
-        font-weight: bold;
-    }
+}
+
+/* 基于当前的“打印设置”控制解析的显示 or 隐藏 */
+/* 教师版：完全渲染解析 */
+body.print-teacher-mode .exam-solution-block {
+    display: block !important;
+    background: #f8f9fa !important;
+    border: 1px solid #000000 !important;
+    padding: 12px !important;
+    margin-top: 15px !important;
+    page-break-inside: avoid !important;
+}
+
+/* 教师版：隐藏答题留白 */
+body.print-teacher-mode .student-space {
+    display: none !important;
+}
+
+/* 学生版：隐藏解析 */
+body.print-student-mode .exam-solution-block {
+    display: none !important;
+}
+
+/* 学生版：展示答题留白与线段 */
+body.print-student-mode .student-space {
+    display: block !important;
+}
+
+/* 给学生版在纸张上提供标准的做题格子/横线 */
+body.print-student-mode .calculation-space {
+    background: transparent !important;
+    border: 1.5px dashed #000000 !important;
+    height: 180px !important;
+    color: #888888 !important;
+}
+
+/* 答题线表示：如果是填空题留空，画出一条粗黑下划线 */
+.print-fill-blank {
+    text-decoration: underline !important;
+    font-weight: bold;
 }
 
 /* ==========================================================================
@@ -1970,6 +1978,7 @@ body {
     font-weight: 700;
     background: var(--accent-gradient);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -2831,6 +2840,7 @@ body {
     font-weight: 800;
     background: linear-gradient(135deg, #8b5cf6, #3b82f6);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 10px;
 }
