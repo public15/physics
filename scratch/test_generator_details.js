@@ -5,7 +5,7 @@ global.katex = {
     renderToString(str) { return str; }
 };
 
-const code = fs.readFileSync(path.join(__dirname, 'temp_question_engine.js'), 'utf8') + '\nglobal.PHYSICS_ENGINE = PHYSICS_ENGINE;';
+const code = fs.readFileSync(path.join(__dirname, '../js/question_engine.js'), 'utf8') + '\nglobal.PHYSICS_ENGINE = PHYSICS_ENGINE;';
 eval(code);
 
 const categories = [

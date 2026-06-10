@@ -1166,40 +1166,160 @@ body {
 /* ================= 8. 响应式布局媒体查询 ================= */
 @media (max-width: 1024px) {
     .app-sidebar {
-        display: none; /* 移动端隐藏侧边栏，可通过按钮或后续交互展开 */
+        position: relative !important;
+        top: 0 !important;
+        width: 100% !important;
+        background: transparent !important;
+        border-right: none !important;
+        border-bottom: 1px solid var(--border-color) !important;
+        padding: 12px 16px 4px 16px !important;
+        z-index: 90 !important;
+        overflow-y: visible !important;
+        height: auto !important;
+    }
+    .sidebar-nav {
+        flex-direction: row !important;
+        align-items: center !important;
+        width: 100% !important;
+        height: auto !important;
+    }
+    .nav-section-title,
+    .print-quick-card {
+        display: none !important;
+    }
+    .nav-list {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 8px !important;
+        margin-bottom: 0 !important;
+        overflow-x: auto !important;
+        width: 100% !important;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 6px !important;
+    }
+    .nav-list::-webkit-scrollbar {
+        display: none !important;
+    }
+    .nav-item {
+        flex: 0 0 auto !important;
+        padding: 6px 14px !important;
+        margin-bottom: 0 !important;
+        font-size: 13px !important;
+        border-radius: 20px !important;
+        border-left: none !important;
+    }
+    .nav-item.active {
+        border-left: none !important;
+        background: var(--bg-pill-active) !important;
+    }
+    .nav-item .badge {
+        margin-left: 6px !important;
     }
     .app-main-content {
-        margin-left: 0;
-        padding: 20px;
+        margin-left: 0 !important;
+        padding: 16px !important;
     }
     .formulas-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
     }
     .search-container {
-        flex: 0 1 200px;
+        flex: 0 1 200px !important;
     }
 }
 
 @media (max-width: 768px) {
     .app-header {
-        padding: 0 12px;
-        height: 60px;
+        padding: 0 12px !important;
+        height: 60px !important;
+        justify-content: space-between !important;
     }
     .app-container {
-        margin-top: 60px;
+        margin-top: 60px !important;
+        display: flex !important;
+        flex-direction: column !important;
     }
     .logo-text {
-        font-size: 16px;
+        font-size: 16px !important;
     }
     .search-container {
-        display: none; /* 移动端隐藏搜索栏以节省空间 */
+        display: none !important;
     }
+    
+    /* 移动端底部高奢 App 底栏导航 */
     .view-switcher {
-        padding: 2px;
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        height: 62px !important;
+        background: var(--bg-card) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border-top: 1px solid var(--border-color) !important;
+        display: flex !important;
+        justify-content: space-around !important;
+        align-items: center !important;
+        z-index: 1000 !important;
+        padding: 6px 10px !important;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25) !important;
+        border-radius: 0 !important;
+        width: 100% !important;
     }
-    .switch-btn {
-        padding: 4px 10px;
-        font-size: 12px;
+    .view-switcher .switch-btn {
+        flex-direction: column !important;
+        gap: 3px !important;
+        font-size: 10px !important;
+        padding: 4px 0 !important;
+        background: transparent !important;
+        border: none !important;
+        flex: 1 !important;
+        justify-content: center !important;
+        height: 100% !important;
+        border-radius: 8px !important;
+    }
+    .view-switcher .switch-btn.active {
+        background: rgba(168, 85, 247, 0.08) !important;
+        color: var(--accent-color) !important;
+    }
+    .view-switcher .switch-btn svg {
+        width: 18px !important;
+        height: 18px !important;
+        margin: 0 !important;
+    }
+    body {
+        padding-bottom: 75px !important;
+    }
+    
+    /* 解决“打印此题”按钮遮挡正文的致命 Bug */
+    .print-select-toggle {
+        position: relative !important;
+        right: auto !important;
+        top: auto !important;
+        margin-bottom: 12px !important;
+        display: inline-flex !important;
+        width: fit-content !important;
+    }
+    
+    /* 缩写滑块间距防重叠 */
+    .subject-portal-switcher {
+        margin-left: 10px !important;
+    }
+    .subject-tab {
+        padding: 6px 10px !important;
+        font-size: 12px !important;
+        gap: 4px !important;
+    }
+    
+    /* 试卷内边距适配手机 */
+    .exam-sheet-container {
+        padding: 24px 16px !important;
+    }
+    .exam-main-title {
+        font-size: 18px !important;
+    }
+    .student-info-fields {
+        font-size: 11px !important;
+        gap: 8px 12px !important;
     }
 }
 
@@ -2860,4 +2980,29 @@ body {
     font-size: 13px;
     color: var(--text-secondary);
     line-height: 1.6;
+}
+
+@media (max-width: 480px) {
+    .subject-portal-switcher {
+        margin-left: 6px !important;
+    }
+    .subject-tab {
+        padding: 5px 8px !important;
+        font-size: 11px !important;
+        gap: 2px !important;
+    }
+    .subject-tab .icon {
+        display: none !important;
+    }
+    .logo-text {
+        font-size: 14px !important;
+    }
+    .calc-input-group {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+    .calc-input-group select {
+        width: 100% !important;
+        margin-top: 4px !important;
+    }
 }

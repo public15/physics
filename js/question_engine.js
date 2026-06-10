@@ -872,6 +872,68 @@ const PHYSICS_ENGINE = {
 
         // ============================== 四、热学模块 (10个模板) ==============================
         {
+            id: "elec_ampere_rule",
+            category: "electricity",
+            type: "fill",
+            score: 10,
+            generator() {
+                const combo = PHYSICS_ENGINE.randomPick([
+                    { polarity: "左正右负", winding: "前方导线电流向下", left: "S", right: "N", step: "电流从左端流入、右端流出。右手四指弯曲指向前方电流向下的方向，大拇指指向右端，故右端为 N 极，left 端为 S 极。" },
+                    { polarity: "左正右负", winding: "前方导线电流向上", left: "N", right: "S", step: "电流从左端流入、右端流出。右手四指弯曲指向前方电流向上的方向，大拇指指向左端，故左端为 N 极，右端为 S 极。" },
+                    { polarity: "左负右正", winding: "前方导线电流向下", left: "N", right: "S", step: "电流从右端流入、左端流出。右手四指弯曲指向前方电流向下的方向，大拇指指向左端，故左端为 N 极，右端为 S 极。" },
+                    { polarity: "左负右正", winding: "前方导线电流向上", left: "S", right: "N", step: "电流从右端流入、左端流出。右手四指弯曲指向前方电流向上的方向，大拇指指向右端，故右端为 N 极，左端为 S 极。" }
+                ]);
+                return {
+                    question: `通电螺线管极性判定：如图，电源连接为“$${combo.polarity}$”。若螺线管的绕线使得$${combo.winding}$，则通电螺线管的左端为___________极（选填“N”或“S”）。`,
+                    answer: `${combo.left}`,
+                    steps: [
+                        `1. **确定电流流入方向**：根据电源“${combo.polarity}”，确定电流方向。`,
+                        `2. **右手螺旋定则（安培定则）判定**：`,
+                        `   ${combo.step}`,
+                        `3. **得出结论**：左端为 **${combo.left}** 极。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "elec_generator_motor_diff",
+            category: "electricity",
+            type: "choice",
+            score: 10,
+            generator() {
+                const isGenerator = PHYSICS_ENGINE.randomPick([true, false]);
+                if (isGenerator) {
+                    return {
+                        question: `关于电与磁，下列说法正确的是（___________）<br>` +
+                                  `A. 发电机是利用通电线圈在磁场中受力转动的原理制成的<br>` +
+                                  `B. 发电机工作时将电能转化为机械能<br>` +
+                                  `C. 发电机是利用电磁感应现象制成的，工作时将机械能转化为电能<br>` +
+                                  `D. 发电机内部是没有磁体的`,
+                        answer: `C`,
+                        steps: [
+                            `1. **发电机原理分析**：发电机是利用英国物理学家法拉第发现的**电磁感应现象**制成的。因此 A 错误，C 正确。`,
+                            `2. **能量转化分析**：发电机工作时，通过消耗机械能（转动）来产生电能，即将**机械能转化为电能**。因此 B 错误。`,
+                            `3. **构造分析**：发电机必须有强磁体以提供磁场。因此 D 错误。`
+                        ]
+                    };
+                } else {
+                    return {
+                        question: `关于电风扇和电动机，下列说法正确的是（___________）<br>` +
+                                  `A. 电动机是利用电磁感应原理制成的，工作时将机械能转化为电能<br>` +
+                                  `B. 电动机是利用通电导体在磁场中受力转动的原理制成的，工作时将电能转化为机械能<br>` +
+                                  `C. 电动机与发电机的工作原理完全相同<br>` +
+                                  `D. 电动机工作时不需要消耗电能`,
+                        answer: `B`,
+                        steps: [
+                            `1. **电动机原理分析**：电动机是利用**通电导体在磁场中受到力的作用而转动**的原理制成的。因此 A 错误，B 正确。`,
+                            `2. **能量转化分析**：电动机通电工作，消耗电能产生机械能（转动），即将**电能转化为机械能**。因此 D 错误。`,
+                            `3. **对比分析**：发电机原理为电磁感应，电动机原理为磁场对电流的作用，两者工作原理不同。因此 C 错误。`
+                        ]
+                    };
+                }
+            }
+        },
+        {
             id: "therm_water_q",
             category: "thermodynamics",
             type: "calculation",
@@ -1454,6 +1516,34 @@ const PHYSICS_ENGINE = {
 
         // ============================== 五、数学：几何与图形 (3个模板) ==============================
         {
+            id: "math_inequality_sys_solve",
+            category: "eq-func",
+            type: "calculation",
+            score: 20,
+            generator() {
+                const combo = PHYSICS_ENGINE.randomPick([
+                    { eq1: "2x - 1 > 3", step1: "2x > 4 \\implies x > 2", eq2: "3x - 5 \\le 7", step2: "3x \\le 12 \\implies x \\le 4", ans: "2 < x \\le 4", key1: "x > 2", key2: "x \\le 4" },
+                    { eq1: "x - 3 \\ge 1", step1: "x \\ge 4", eq2: "2x - 1 < 15", step2: "2x < 16 \\implies x < 8", ans: "4 \\le x < 8", key1: "x \\ge 4", key2: "x < 8" },
+                    { eq1: "3x + 2 > -4", step1: "3x > -6 \\implies x > -2", eq2: "x - 1 \\le 2", step2: "x \\le 3", ans: "-2 < x \\le 3", key1: "x > -2", key2: "x \\le 3" },
+                    { eq1: "2x + 5 \\ge 1", step1: "2x \\ge -4 \\implies x \\ge -2", eq2: "3x - 2 < 10", step2: "3x < 12 \\implies x < 3", ans: "-2 \\le x < 3", key1: "x \\ge -2", key2: "x < 3" },
+                    { eq1: "x + 2 > 5", step1: "x > 3", eq2: "4x - 3 \\le 17", step2: "4x \\le 20 \\implies x \\le 5", ans: "3 < x \\le 5", key1: "x > 3", key2: "x \\le 5" },
+                    { eq1: "3x - 1 \\ge 8", step1: "3x \\ge 9 \\implies x \\ge 3", eq2: "2x + 3 < 17", step2: "2x < 14 \\implies x < 7", ans: "3 \\le x < 7", key1: "x \\ge 3", key2: "x < 7" },
+                    { eq1: "5x - 2 > 8", step1: "5x > 10 \\implies x > 2", eq2: "x + 4 \\le 9", step2: "x \\le 5", ans: "2 < x \\le 5", key1: "x > 2", key2: "x \\le 5" },
+                    { eq1: "x - 1 \\ge -3", step1: "x \\ge -2", eq2: "3x + 1 < 7", step2: "3x < 6 \\implies x < 2", ans: "-2 \\le x < 2", key1: "x \\ge -2", key2: "x < 2" }
+                ]);
+                return {
+                    question: `解不等式组：$\\begin{cases} ${combo.eq1} \\quad \\text{①} \\\\ ${combo.eq2} \\quad \\text{②} \\end{cases}$。`,
+                    answer: `${combo.ans}`,
+                    steps: [
+                        `解不等式 ① 得：$${combo.step1}$；`,
+                        `解不等式 ② 得：$${combo.step2}$；`,
+                        `在数轴上表示两个不等式的解集并求其公共部分（利用口诀“大小小大中间找”）：`,
+                        `因此，原不等式组的解集为：<strong>$${combo.ans}$</strong>。`
+                    ]
+                };
+            }
+        },
+        {
             id: "math_pythagoras_c",
             category: "geom",
             type: "calculation",
@@ -1534,6 +1624,64 @@ const PHYSICS_ENGINE = {
         },
 
         // ============================== 六、数学：概率与统计 (1个模板) ==============================
+        {
+            id: "math_rhombus_area",
+            category: "geom",
+            type: "calculation",
+            score: 10,
+            generator() {
+                const combo = PHYSICS_ENGINE.randomPick([
+                    { d1: 6, d2: 8, half1: 3, half2: 4, side: 5, area: 24, circum: 20 },
+                    { d1: 10, d2: 24, half1: 5, half2: 12, side: 13, area: 120, circum: 52 },
+                    { d1: 12, d2: 16, half1: 6, half2: 8, side: 10, area: 96, circum: 40 },
+                    { d1: 16, d2: 30, half1: 8, half2: 15, side: 17, area: 240, circum: 68 }
+                ]);
+                return {
+                    question: `已知菱形 $ABCD$ 的两条对角线 $AC$ 和 $BD$ 的长度分别为 $${combo.d1}\text{ cm}$ 和 $${combo.d2}\text{ cm}$。求：（1）该菱形的面积；（2）该菱形的周长。`,
+                    answer: `面积为 ${combo.area} cm²，周长为 ${combo.circum} cm`,
+                    steps: [
+                        `**(1) 计算菱形的面积**：`,
+                        `   根据对角线求面积公式：$S = \\frac{1}{2} AC \\times BD = \\frac{1}{2} \\times ${combo.d1} \\times ${combo.d2} = ${combo.area}\\text{ cm}^2$。`,
+                        `**(2) 计算菱形的周长**：`,
+                        `   菱形的对角线互相垂直且平分。设对角线交点为 $O$。`,
+                        `   则对角线的一半分别为：$OA = \\frac{1}{2} AC = ${combo.half1}\\text{ cm}$，$OB = \\frac{1}{2} BD = ${combo.half2}\\text{ cm}$。`,
+                        `   在直角三角形 $AOB$ 中，根据勾股定理求边长 $AB$：`,
+                        `   $AB = \\sqrt{OA^2 + OB^2} = \\sqrt{${combo.half1}^2 + ${combo.half2}^2} = \\sqrt{${combo.half1*combo.half1} + ${combo.half2*combo.half2}} = \\sqrt{${combo.half1*combo.half1 + combo.half2*combo.half2}} = ${combo.side}\\text{ cm}$。`,
+                        `   菱形四条边相等，因此周长为：$C = 4 \\times AB = 4 \\times ${combo.side}\\text{ cm} = ${combo.circum}\\text{ cm}$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "math_trapezoid_pythagoras",
+            category: "geom",
+            type: "calculation",
+            score: 10,
+            generator() {
+                const combo = PHYSICS_ENGINE.randomPick([
+                    { a: 5, b: 8, diff: 3, h: 4, c: 5 },
+                    { a: 7, b: 12, diff: 5, h: 12, c: 13 },
+                    { a: 4, b: 10, diff: 6, h: 8, c: 10 },
+                    { a: 8, b: 23, diff: 15, h: 8, c: 17 }
+                ]);
+                return {
+                    question: `如图，在直角梯形 $ABCD$ 中，$AD \\parallel BC$，$\\angle B = 90^\\circ$。已知上底 $AD = ${combo.a}$，下底 $BC = ${combo.b}$，高 $AB = ${combo.h}$。求非直角腰 $CD$ 的长度。`,
+                    answer: `${combo.c}`,
+                    steps: [
+                        `1. **过点 $D$ 作高线**：过点 $D$ 作 $DE \\perp BC$ 于点 $E$。`,
+                        `2. **利用矩形性质求段长**：`,
+                        `   因为 $AD \\parallel BC$，$\\angle B = 90^\\circ$，且 $DE \\perp BC$。`,
+                        `   所以四边形 $ABED$ 是矩形。可得：`,
+                        `   $BE = AD = ${combo.a}$；$DE = AB = ${combo.h}$。`,
+                        `3. **求三角形底边长**：`,
+                        `   $EC = BC - BE = ${combo.b} - ${combo.a} = ${combo.diff}$。`,
+                        `4. **勾股定理求斜边**：`,
+                        `   在直角三角形 $DEC$ 中，$\\angle DEC = 90^\\circ$：`,
+                        `   $CD = \\sqrt{DE^2 + EC^2} = \\sqrt{${combo.h}^2 + ${combo.diff}^2} = \\sqrt{${combo.h*combo.h} + ${combo.diff*combo.diff}} = \\sqrt{${combo.h*combo.h + combo.diff*combo.diff}} = ${combo.c}$。`
+                    ]
+                };
+            }
+        },
         {
             id: "math_stat_variance",
             category: "stat-prob",
@@ -1899,6 +2047,28 @@ const PHYSICS_ENGINE = {
                         `1. **压强公式变形：** $p = \\frac{F}{S} \\implies F = pS$。`,
                         `2. **液体压强公式变形：** $p = \\rho g h \\implies h = \\frac{p}{\\rho g}$。`,
                         `3. **阿基米德原理变形：** $F_{浮} = \rho_{液} g V_{排} \implies V_{排} = \frac{F_{浮}}{\rho_{液} g}$。`
+                    ]
+                };
+            }
+        },
+        {
+            id: "mech_torricelli_calc",
+            category: "mechanics",
+            type: "fill",
+            score: 10,
+            generator() {
+                const h_mm = PHYSICS_ENGINE.randomPick([740, 750, 755, 760, 765, 770, 775]);
+                const rho = 13600; // 水银密度 13.6 × 10³ kg/m³
+                const g = 10;
+                const P0 = rho * g * (h_mm / 1000);
+                return {
+                    question: `托里拆利实验测大气压：在实验中，玻璃管内水银柱的高度为 $${h_mm}\text{ mm}$。已知水银的密度为 $13.6 \times 10^3\text{ kg/m}^3$，$g$ 取 $10\text{ N/kg}$，则此时产生压强的大气压强值为___________ $\text{Pa}$。`,
+                    answer: `${P0}`,
+                    steps: [
+                        `1. **统一单位**：水银柱高度 $h = ${h_mm}\text{ mm} = ${h_mm / 1000}\text{ m}$。`,
+                        `2. **应用公式计算大气压强**：`,
+                        `   根据托里拆利实验原理，大气压强等于水银柱产生的压强。`,
+                        `   $P_0 = \\rho_{水银} g h = 13.6 \times 10^3\\text{ kg/m}^3 \\times 10\\text{ N/kg} \\times ${h_mm / 1000}\\text{ m} = ${P0}\\text{ Pa}$。`
                     ]
                 };
             }

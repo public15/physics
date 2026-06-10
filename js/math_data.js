@@ -544,6 +544,49 @@ const MATH_DB = {
                 }
             ]
         },
+        {
+            id: "linear_inequalities",
+            category: "eq-func",
+            title: "一元一次不等式组",
+            symbolFormula: "\\begin{cases} x > a \\\\ x \\le b \\end{cases}",
+            definition: "解一元一次不等式组时，先求出其中每个不等式的解集，再求出它们的公共部分（交集）。确定解集的口诀为：同大取大，同小取小，大小小大中间找，大大小小解不了。",
+            variables: [
+                { symbol: "a", name: "第一个解边界 a", mainUnit: "数值", altUnits: [] },
+                { symbol: "b", name: "第二个解边界 b", mainUnit: "数值", altUnits: [] }
+            ],
+            transformations: [
+                { resultSymbol: "\\text{解集}", formula: "a < x \\le b", description: "两解边界求交集解集" }
+            ],
+            calculator: {
+                variables: ["a", "b"],
+                solve: (inputs) => {
+                    let a = inputs["a"];
+                    let b = inputs["b"];
+                    if (a === null || b === null) return { error: "请输入完整的边界值 a 和 b。" };
+                    let step = "";
+                    if (a < b) {
+                        step = `第一个不等式解集为：$x > ${a}$，第二个不等式解集为：$x \\le ${b}$。\\\\` +
+                               `求公共解集（大小小大中间找）：<strong>${a} < x \\le ${b}</strong>`;
+                        return { "\\text{解集}": b - a, step: step };
+                    } else {
+                        step = `第一个不等式解集为：$x > ${a}$，第二个不等式解集为：$x \\le ${b}$。\\\\` +
+                               `求公共解集（大大小小无处找）：<strong>无解（解集为空）</strong>`;
+                        return { "\\text{解集}": 0, step: step };
+                    }
+                }
+            },
+            examples: [
+                {
+                    question: "解不等式组：$\\begin{cases} 2x - 1 > 3 \\quad \\text{①} \\\\ 3x - 5 \\le 7 \\quad \\text{②} \\end{cases}$",
+                    steps: [
+                        "1. 解不等式 ①：移项得 $2x > 4$，系数化为 1 得 $x > 2$。",
+                        "2. 解不等式 ②：移项得 $3x \\le 12$，系数化为 1 得 $x \\le 4$。",
+                        "3. 将两个不等式的解集求交集得：$2 < x \\le 4$。",
+                        "**答：** 该不等式组的解集为 $2 < x \\le 4$。"
+                    ]
+                }
+            ]
+        },
 
         // ================= 三、几何与图形 =================
         {
@@ -926,6 +969,58 @@ const MATH_DB = {
                         "1. 计算对应的单个外角：$A_{外} = 180^\\circ - A_{内} = 180^\\circ - 135^\\circ = 45^\\circ$。",
                         "2. 利用多边形外角和恒为 $360^\\circ$ 计算边数：$n = \\frac{360^\\circ}{A_{外}} = \\frac{360^\\circ}{45^\\circ} = 8$。",
                         "**答：** 这个多边形的边数 $n$ 是 $8$（即正八边形）。"
+                    ]
+                }
+            ]
+        },
+        {
+            id: "rhombus_properties",
+            category: "geom",
+            title: "菱形面积与周长公式",
+            symbolFormula: "S = \\frac{1}{2} d_1 d_2, \\quad C = 4 a",
+            definition: "菱形的两条对角线互相垂直且平分。因此，其面积等于对角线乘积的一半；且可通过对角线的一半，利用勾股定理 $a = \\sqrt{(\\frac{d_1}{2})^2 + (\\frac{d_2}{2})^2}$ 求出边长 $a$，进而计算周长 $C = 4a$。",
+            variables: [
+                { symbol: "d_1", name: "对角线长 d_1", mainUnit: "长度", altUnits: [] },
+                { symbol: "d_2", name: "对角线长 d_2", mainUnit: "长度", altUnits: [] }
+            ],
+            transformations: [
+                { resultSymbol: "S", formula: "S = \\frac{1}{2} d_1 d_2", description: "已知对角线求菱形面积" },
+                { resultSymbol: "a", formula: "a = \\sqrt{(\\frac{d_1}{2})^2 + (\\frac{d_2}{2})^2}", description: "已知对角线求菱形边长" }
+            ],
+            calculator: {
+                variables: ["d_1", "d_2"],
+                solve: (inputs) => {
+                    let d1 = inputs["d_1"];
+                    let d2 = inputs["d_2"];
+                    if (d1 === null || d2 === null) return { error: "菱形计算需要同时输入对角线 d1 和 d2。" };
+                    if (d1 <= 0 || d2 <= 0) return { error: "对角线长度必须大于0！" };
+                    
+                    const area = 0.5 * d1 * d2;
+                    const half1 = d1 / 2;
+                    const half2 = d2 / 2;
+                    const side = Math.sqrt(half1 * half1 + half2 * half2);
+                    const circum = 4 * side;
+                    
+                    let step = `1. **计算菱形面积**：\\\\` +
+                               `$S = \\frac{1}{2} d_1 d_2 = \\frac{1}{2} \\times ${d1} \\times ${d2} = <strong>${area.toFixed(2).replace(/\.?0+$/, '')}</strong>$；\\\\` +
+                               `2. **根据对角线垂直平分，勾股定理计算边长 $a$**：\\\\` +
+                               `对角线一半分别为 $\\frac{d_1}{2} = ${half1}$，$\\frac{d_2}{2} = ${half2}$；\\\\` +
+                               `边长 $a = \\sqrt{${half1}^2 + ${half2}^2} = \\sqrt{${half1*half1} + ${half2*half2}} = \\sqrt{${half1*half1 + half2*half2}} = <strong>${side.toFixed(2).replace(/\.?0+$/, '')}</strong>$；\\\\` +
+                               `3. **计算周长**：\\\\` +
+                               `$C = 4a = 4 \\times ${side.toFixed(2).replace(/\.?0+$/, '')} = <strong>${circum.toFixed(2).replace(/\.?0+$/, '')}</strong>$。`;
+                    
+                    return { "S": area, step: step };
+                }
+            },
+            examples: [
+                {
+                    question: "已知一个菱形的两条对角线分别为 6 cm 和 8 cm，求该菱形的面积 and 周长。",
+                    steps: [
+                        "1. 计算面积：$S = \\frac{1}{2} d_1 d_2 = \\frac{1}{2} \\times 6\\text{ cm} \\times 8\\text{ cm} = 24\\text{ cm}^2$。",
+                        "2. 计算两条对角线的一半：对角线的一半为 3 cm 和 4 cm。",
+                        "3. 根据勾股定理计算菱形边长：$a = \\sqrt{3^2 + 4^2} = \\sqrt{9 + 16} = \\sqrt{25} = 5\\text{ cm}$。",
+                        "4. 计算周长：$C = 4a = 4 \\times 5\\text{ cm} = 20\\text{ cm}$。",
+                        "**答：** 菱形的面积是 $24\\text{ cm}^2$，周长是 $20\\text{ cm}$。"
                     ]
                 }
             ]

@@ -1243,7 +1243,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <!-- 学生版答题留空区域 -->
                 <div class="student-space ${state.printMode === "student" ? "active" : ""}">
                     ${q.type === "calculation" ? `
-                        <div class="calculation-space">—— 请在纸张打印版中写出公式与计算步骤 ——</div>
+                        <div class="calculation-space"></div>
                     ` : `
                         <div style="height: 10px; width: 100%;"></div>
                     `}

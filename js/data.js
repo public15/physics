@@ -424,6 +424,50 @@ const PHYSICS_DB = {
                 }
             ]
         },
+        {
+            id: "torricelli-pressure",
+            category: "mechanics",
+            title: "托里拆利大气压公式",
+            symbolFormula: "P_0 = \\rho_{水银} g h",
+            definition: "托里拆利实验测出了大气压强的具体数值。在标准大气压下，大气压强等于 760 mm 高的水银柱产生的压强，大小约为 $1.013 \\times 10^5\\text{ Pa}$。",
+            variables: [
+                { symbol: "P_0", name: "大气压强", mainUnit: "Pa", altUnits: [{ unit: "kPa", factor: 0.001 }], conversionText: "标准大气压约为 1.013 × 10⁵ Pa" },
+                { symbol: "\\rho_{水银}", name: "水银密度", mainUnit: "kg/m³", altUnits: [], conversionText: "通常取 13.6 × 10³ kg/m³" },
+                { symbol: "g", name: "重力常数", mainUnit: "N/kg", altUnits: [], conversionText: "通常取 9.8 N/kg 或 10 N/kg" },
+                { symbol: "h", name: "水银柱高度", mainUnit: "m", altUnits: [{ unit: "mm", factor: 1000 }], conversionText: "1 m = 1000 mm" }
+            ],
+            transformations: [
+                { resultSymbol: "h", formula: "h = \\frac{P_0}{\\rho_{水银} g}", description: "已知大气压强求水银柱支持高度" }
+            ],
+            calculator: {
+                variables: ["P_0", "\\rho_{水银}", "g", "h"],
+                solve: (inputs) => {
+                    let P = inputs["P_0"];
+                    let rho = inputs["\\rho_{水银}"];
+                    let g = inputs["g"];
+                    let h = inputs["h"];
+                    if (g === null) g = 10;
+                    if (rho === null) rho = 13600;
+                    if (P === null && h !== null) {
+                        return { "P_0": rho * g * h, step: "P_0 = \\rho g h = " + rho + " \\times " + g + " \\times " + h + " = " + (rho * g * h).toFixed(0) + " Pa" };
+                    } else if (h === null && P !== null) {
+                        if (rho * g === 0) return { error: "除数不能为0" };
+                        return { h: P / (rho * g), step: "h = P_0 / (\\rho g) = " + P + " / (" + rho + " \\times " + g + ") = " + (P / (rho * g)).toFixed(4) + " m" };
+                    }
+                    return null;
+                }
+            },
+            examples: [
+                {
+                    question: "若托里拆利实验中玻璃管内水银柱高度为 750 mm，求此时的大气压强是多少 Pa？（水银密度为 $13.6 \\times 10^3\\text{ kg/m}^3$，g取 10 N/kg）",
+                    steps: [
+                        "1. 已知水银柱高度 $h = 750\\text{ mm} = 0.75\\text{ m}$，水银密度 $\\rho = 13.6 \\times 10^3\\text{ kg/m}^3$，常数 $g = 10\\text{ N/kg}$。",
+                        "2. 根据液体压强公式计算大气压：$P_0 = \\rho g h = 13.6 \\times 10^3\\text{ kg/m}^3 \\times 10\\text{ N/kg} \\times 0.75\\text{ m} = 1.02 \\times 10^5\\text{ Pa}$。",
+                        "**答：** 此时的大气压强是 $1.02 \\times 10^5\\text{ Pa}$。"
+                    ]
+                }
+            ]
+        },
 
         // ================= 电学部分 =================
         {
@@ -590,6 +634,79 @@ const PHYSICS_DB = {
                         "1. 已知电阻 $R = 10\\text{ }\\Omega$，电流 $I = 2\\text{ A}$，通电时间 $t = 1\\text{ min} = 60\\text{ s}$。",
                         "2. 代入焦耳定律公式计算电热：$Q = I^2 R t = (2\\text{ A})^2 \\times 10\\text{ }\\Omega \\times 60\\text{ s} = 4 \\times 10 \\times 60 = 2400\\text{ J}$。",
                         "**答：** 电热丝通电 1 分钟产生的热量是 $2400\\text{ J}$。"
+                    ]
+                }
+            ]
+        },
+        {
+            id: "ampere-rule",
+            category: "electricity",
+            title: "通电螺线管安培定则",
+            symbolFormula: "\\text{判定螺线管 } N/S \\text{ 极}",
+            definition: "用右手握住螺线管，让四指弯向螺线管中电流的方向，则大拇指所指的那一端就是螺线管的 N 极。这对于判定电磁铁极性极其关键。",
+            variables: [
+                { symbol: "\\text{绕法}", name: "前面导线电流方向", mainUnit: "向上/向下", altUnits: [] },
+                { symbol: "\\text{极性}", name: "电源左端极性", mainUnit: "正极/负极", altUnits: [] }
+            ],
+            transformations: [
+                { resultSymbol: "\\text{磁极}", formula: "\\text{大拇指方向} \\implies N\\text{极}", description: "判断螺线管磁极" }
+            ],
+            calculator: {
+                variables: ["\\text{绕法}", "\\text{极性}"],
+                solve: (inputs) => {
+                    let rawWinding = inputs["\\text{绕法}"]; 
+                    let rawPolarity = inputs["\\text{极性}"]; 
+                    if (rawWinding === null || rawPolarity === null) {
+                        return { error: "请输入1（代表向上/正极）或0（代表向下/负极）" };
+                    }
+                    let isLeftN = (rawWinding === 1 && rawPolarity === 1) || (rawWinding === 0 && rawPolarity === 0);
+                    let resultStr = isLeftN ? "左端为 N 极，右端为 S 极" : "左端为 S 极，右端为 N 极";
+                    return { "\\text{磁极}": isLeftN ? 1 : 0, step: "依据右手螺旋定则判定得出：<strong>" + resultStr + "</strong>" };
+                }
+            },
+            examples: [
+                {
+                    question: "已知一个螺线管，电流从左端流入，右端流出，从前方看绕线电流方向向下，求螺线管左端是什么极？",
+                    steps: [
+                        "1. 电流从左端流入，前方导线电流方向向下。",
+                        "2. 用右手握住螺线管，让四指弯曲方向向下，大拇指指向右端。",
+                        "3. 因此，螺线管的右端为 N 极，左端即为 S 极。",
+                        "**答：** 螺线管左端是 S 极。"
+                    ]
+                }
+            ]
+        },
+        {
+            id: "electromagnetic-induction",
+            category: "electricity",
+            title: "发电机与电动机原理",
+            symbolFormula: "\\text{发电机: 电磁感应} \\quad \\text{电动机: 磁场对电流作用}",
+            definition: "1. 电磁感应：闭合电路的一部分导体在磁场中做切割磁感线运动，产生感应电流，是发电机的工作原理。<br>2. 磁场对通电导线的作用：通电导体在磁场中受到力的作用而发生运动，是电动机的工作原理。",
+            variables: [
+                { symbol: "\\text{现象}", name: "输入能量类型", mainUnit: "电能/机械能", altUnits: [] }
+            ],
+            transformations: [
+                { resultSymbol: "\\text{应用}", formula: "\\text{能量转化方向}", description: "机械能转电能为发电机，反之为电动机" }
+            ],
+            calculator: {
+                variables: ["\\text{现象}"],
+                solve: (inputs) => {
+                    let type = inputs["\\text{现象}"]; 
+                    if (type === null) return { error: "请输入 1 (代表输入机械能) 或 0 (代表输入电能)" };
+                    if (type === 1) {
+                        return { "\\text{应用}": 1, step: "输入机械能产生电能：利用<strong>电磁感应原理</strong>，应用为<strong>发电机</strong>。" };
+                    } else {
+                        return { "\\text{应用}": 0, step: "输入电能产生机械能：利用<strong>通电导线在磁场中受力转动原理</strong>，应用为<strong>电动机</strong>。" };
+                    }
+                }
+            },
+            examples: [
+                {
+                    question: "微型风扇通电时能转动，但把它跟发光二极管连接，用力快速转动扇叶，二极管会发光。分析这两次过程中它的工作原理。",
+                    steps: [
+                        "1. 电风扇通电转动：输入电能转化为机械能，工作原理是**通电导体在磁场中受到力的作用**（电动机原理）。",
+                        "2. 快速手转扇叶二极管发光：输入机械能转化为电能，产生感应电流，工作原理是**电磁感应现象**（发电机原理）。",
+                        "**答：** 前者利用磁场对通电导线有力的作用，后者利用电磁感应现象。"
                     ]
                 }
             ]
