@@ -32,10 +32,10 @@ document.addEventListener("DOMContentLoaded", () => {
         subjectSwitcher: document.getElementById("subjectSwitcher"),
         
         // SPA 视图切换
-        btnShowHandbook: document.getElementById("btnShowHandbook"),
-        btnShowPractice: document.getElementById("btnShowPractice"),
-        btnShowConversions: document.getElementById("btnShowConversions"),
-        btnUploadSection: document.getElementById("btnUploadSection"),
+        btnShowHandbook: null,
+        btnShowPractice: null,
+        btnShowConversions: null,
+        btnUploadSection: null,
         handbookSection: document.getElementById("handbookSection"),
         practiceSection: document.getElementById("practiceSection"),
         conversionsSection: document.getElementById("conversionsSection"),
@@ -1414,24 +1414,16 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        // C. SPA 视图标签切换
-        DOM.btnShowHandbook.addEventListener("click", () => {
-            switchView("handbook");
-        });
-
-        DOM.btnShowPractice.addEventListener("click", () => {
-            switchView("practice");
-        });
-
-        DOM.btnShowConversions.addEventListener("click", () => {
-            switchView("conversions");
-        });
-
-        if (DOM.btnUploadSection) {
-            DOM.btnUploadSection.addEventListener("click", () => {
-                switchView("uploadSection");
+        // C. SPA 视图标签切换 (支持多个 view-switcher 状态同步)
+        const switcherBtns = document.querySelectorAll('.switch-btn');
+        switcherBtns.forEach(btn => {
+            btn.addEventListener("click", () => {
+                const target = btn.getAttribute("data-target");
+                if (target) {
+                    switchView(target);
+                }
             });
-        }
+        });
 
         // D. 学科双雄切换监听
         const subjectTabs = DOM.subjectSwitcher.querySelectorAll(".subject-tab");
@@ -1515,24 +1507,25 @@ document.addEventListener("DOMContentLoaded", () => {
     // SPA 视图切换
     function switchView(viewName) {
         state.currentView = viewName;
-        const allBtns = [DOM.btnShowHandbook, DOM.btnShowPractice, DOM.btnShowConversions, DOM.btnUploadSection].filter(Boolean);
         const allSections = [DOM.handbookSection, DOM.practiceSection, DOM.conversionsSection, DOM.uploadSection].filter(Boolean);
-        allBtns.forEach(b => b.classList.remove("active"));
         allSections.forEach(s => s.classList.remove("active"));
         
-        if (viewName === "handbook") {
-            DOM.btnShowHandbook && DOM.btnShowHandbook.classList.add("active");
-            DOM.handbookSection && DOM.handbookSection.classList.add("active");
-        } else if (viewName === "practice") {
-            DOM.btnShowPractice && DOM.btnShowPractice.classList.add("active");
-            DOM.practiceSection && DOM.practiceSection.classList.add("active");
-        } else if (viewName === "conversions") {
-            DOM.btnShowConversions && DOM.btnShowConversions.classList.add("active");
-            DOM.conversionsSection && DOM.conversionsSection.classList.add("active");
-        } else if (viewName === "uploadSection") {
-            DOM.btnUploadSection && DOM.btnUploadSection.classList.add("active");
-            DOM.uploadSection && DOM.uploadSection.classList.add("active");
-        }
+        // 移除所有 switch-btn 的 active 样式
+        const allBtns = document.querySelectorAll('.switch-btn');
+        allBtns.forEach(b => b.classList.remove("active"));
+        
+        // 激活对应的 section 视图
+        let sectionEl = null;
+        if (viewName === "handbook") sectionEl = DOM.handbookSection;
+        else if (viewName === "practice") sectionEl = DOM.practiceSection;
+        else if (viewName === "conversions") sectionEl = DOM.conversionsSection;
+        else if (viewName === "uploadSection") sectionEl = DOM.uploadSection;
+        
+        if (sectionEl) sectionEl.classList.add("active");
+        
+        // 点亮所有 data-target 匹配的按钮
+        const targetBtns = document.querySelectorAll(`.switch-btn[data-target="${viewName}"]`);
+        targetBtns.forEach(b => b.classList.add("active"));
     }
 
     // ----------------------------------------------------
